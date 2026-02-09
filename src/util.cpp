@@ -79,7 +79,7 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
     NumericVector out(temp.size());
     double out_max = 0;
     for (uint32 i = 0; i < temp.size(); i++) {
-        out[i] = a * temp[i] * std::max(temp[i] - CTmin, 0.0) *
+        out[i] = a * temp[i] * (temp[i] - CTmin) *
             std::pow(std::max(CTmax - temp[i], 0.0), b);
         if (out[i] > out_max) out_max = out[i];
     }
@@ -94,6 +94,12 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
 
 
 //' Brière-2 thermal performance curve (TPC)
+//'
+//' Note that this TPC does not perform well when CTmin is positive, but
+//' there are negative temperatures.
+//' For example, if you run `briere2_tpc(c(-10, 0, 10, 20), CTmin = 5,
+//' CTmax = 30, a = 1, b = 0.2)`, you'll see that a temperature of `-10`
+//' gives a greater performance value than `10`.
 //'
 //' @param temp Numeric vector of temperatures
 //' @param CTmin Single numeric for parameter CTmin
@@ -113,7 +119,7 @@ NumericVector briere2_tpc(NumericVector temp,
                           const double& CTmax,
                           const double& a,
                           const double& b,
-                          const bool& scale = true) {
+                          const bool& scale = false) {
     NumericVector out = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, scale);
     return out;
 }
@@ -220,10 +226,10 @@ double rmse_objective(NumericVector params,
     if (params.size() != 4) stop("params must be length 4");
     if (y.size() != temp.size()) stop("y must be same length as temp");
 
-    double CTmin = std::exp(params[0]);
-    double CTmax = std::exp(params[1]);
+    double CTmin = params[0];
+    double CTmax = params[1];
     double a = std::exp(params[2]);
-    double b = params[3];
+    double b = std::exp(params[3]);
 
     NumericVector y_pred = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, false);
 
@@ -233,6 +239,8 @@ double rmse_objective(NumericVector params,
     }
     out /= static_cast<double>(y.size());
     out = std::sqrt(out);
+    if (Rcpp::traits::is_infinite<REALSXP>(out) ||
+        NumericVector::is_na(out)) out = 1e10;
 
     return out;
 }
@@ -265,9 +273,9 @@ DataFrame sim_gamma_data(NumericVector temp,
 
     if (n_reps < 1) stop("n_reps must be >= 1");
     if (obs_cv < 0) stop("obs_cv must be >= 0");
-    if (CTmin < 0) stop("CTmin must be >= 0");
-    if (CTmax < 0) stop("CTmax must be >= 0");
+    // if (CTmin >= CTmax) stop("CTmin must be < CTmax");
     if (a < 0) stop("a must be >= 0");
+    if (b < 0) stop("b must be >= 0");
 
     NumericVector true_y = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, false);
 

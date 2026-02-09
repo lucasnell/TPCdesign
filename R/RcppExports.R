@@ -20,6 +20,12 @@ inv_logit <- function(a) {
 
 #' Brière-2 thermal performance curve (TPC)
 #'
+#' Note that this TPC does not perform well when CTmin is positive, but
+#' there are negative temperatures.
+#' For example, if you run `briere2_tpc(c(-10, 0, 10, 20), CTmin = 5,
+#' CTmax = 30, a = 1, b = 0.2)`, you'll see that a temperature of `-10`
+#' gives a greater performance value than `10`.
+#'
 #' @param temp Numeric vector of temperatures
 #' @param CTmin Single numeric for parameter CTmin
 #' @param CTmax Single numeric for parameter CTmax
@@ -32,7 +38,7 @@ inv_logit <- function(a) {
 #'
 #' @export
 #'
-briere2_tpc <- function(temp, CTmin, CTmax, a, b, scale = TRUE) {
+briere2_tpc <- function(temp, CTmin, CTmax, a, b, scale = FALSE) {
     .Call(`_TPCdesign_briere2_tpc`, temp, CTmin, CTmax, a, b, scale)
 }
 

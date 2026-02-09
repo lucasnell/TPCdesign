@@ -16,7 +16,10 @@ LinkingTo:
     Rcpp,
     RcppArmadillo
 Imports: 
+    estimatePMR (>= 0.0.0.2),
     Rcpp
 Suggests: 
     nloptr,
     nls.multstart
+Remotes:  
+    github::greischarlab/estimatePMR
