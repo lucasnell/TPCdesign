@@ -51,29 +51,45 @@ BEGIN_RCPP
 END_RCPP
 }
 // make_temps
-NumericVector make_temps(NumericVector params, const double& temp_min, const double& temp_max, const int& n_temps);
-RcppExport SEXP _TPCdesign_make_temps(SEXP paramsSEXP, SEXP temp_minSEXP, SEXP temp_maxSEXP, SEXP n_tempsSEXP) {
+NumericVector make_temps(NumericVector params, const double& temp_min, const double& temp_max);
+RcppExport SEXP _TPCdesign_make_temps(SEXP paramsSEXP, SEXP temp_minSEXP, SEXP temp_maxSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< const double& >::type temp_min(temp_minSEXP);
     Rcpp::traits::input_parameter< const double& >::type temp_max(temp_maxSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n_temps(n_tempsSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_temps(params, temp_min, temp_max, n_temps));
+    rcpp_result_gen = Rcpp::wrap(make_temps(params, temp_min, temp_max));
     return rcpp_result_gen;
 END_RCPP
 }
-// make_temps2
-NumericVector make_temps2(NumericVector params, const double& temp_min, const double& temp_max);
-RcppExport SEXP _TPCdesign_make_temps2(SEXP paramsSEXP, SEXP temp_minSEXP, SEXP temp_maxSEXP) {
+// rmse_objective
+double rmse_objective(NumericVector params, NumericVector y, NumericVector temp);
+RcppExport SEXP _TPCdesign_rmse_objective(SEXP paramsSEXP, SEXP ySEXP, SEXP tempSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type temp_min(temp_minSEXP);
-    Rcpp::traits::input_parameter< const double& >::type temp_max(temp_maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_temps2(params, temp_min, temp_max));
+    Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
+    Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
+    rcpp_result_gen = Rcpp::wrap(rmse_objective(params, y, temp));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sim_gamma_data
+DataFrame sim_gamma_data(NumericVector temp, const int& n_reps, const double& obs_cv, const double& CTmin, const double& CTmax, const double& a, const double& b);
+RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP CTminSEXP, SEXP CTmaxSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n_reps(n_repsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type obs_cv(obs_cvSEXP);
+    Rcpp::traits::input_parameter< const double& >::type CTmin(CTminSEXP);
+    Rcpp::traits::input_parameter< const double& >::type CTmax(CTmaxSEXP);
+    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_gamma_data(temp, n_reps, obs_cv, CTmin, CTmax, a, b));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -82,8 +98,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_logit", (DL_FUNC) &_TPCdesign_logit, 1},
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
-    {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 4},
-    {"_TPCdesign_make_temps2", (DL_FUNC) &_TPCdesign_make_temps2, 3},
+    {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 3},
+    {"_TPCdesign_rmse_objective", (DL_FUNC) &_TPCdesign_rmse_objective, 3},
+    {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 7},
     {NULL, NULL, 0}
 };
 

@@ -17,3 +17,6 @@ LinkingTo:
     RcppArmadillo
 Imports: 
     Rcpp
+Suggests: 
+    nloptr,
+    nls.multstart

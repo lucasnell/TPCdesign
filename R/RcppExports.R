@@ -38,27 +38,57 @@ briere2_tpc <- function(temp, CTmin, CTmax, a, b, scale = TRUE) {
 
 #' Make vector of temperatures for input of parameters
 #'
-#' @param temp Numeric vector of parameters. The first must be the
-#'     logit-transformed proportion the first temperature to be sampled is
-#'     from `temp_min` to `(temp_min + temp_max) / 2`.
-#'     The second is the same for the proportion the last temperature to
-#'     be sampled is from the midpoint to `temp_max`.
-#'     The third and fourth (if present) are the `log(shape1)` and
-#'     `log(shape2)`, respectively, for a beta distribution.
-#'     This distribution is used to generate quantiles to make the temperatures
-#'     not evenly distributed through the temperature space.
+#' @param temp Numeric vector of parameters.
+#'     The length of this vector must be equal to the number of desired
+#'     temperatures plus 1. A vector of length `<2` returns an error.
+#'     The last item in this vector must be the logit-transformed proportion
+#'     the last temperature is from the midpoint
+#'     (i.e., `mean(c(temp_min, temp_max))`)
+#'     to the maximum possible temperature (i.e., `temp_max`).
+#'     The first item is the logit-transformed weight affecting
+#'     the difference between `temp_min` and the first sampled temperature.
+#'     The remaining items are the logit-transformed weights affecting
+#'     the distance between the remaining sampled temperatures and
+#'     the previous ones.
 #' @param temp_min Single numeric for the minimum possible temperature allowed.
 #' @param temp_max Single numeric for the maximum possible temperature allowed.
-#' @param n_temps Single integer for the number of temperatures to sample.
 #'
 #' @returns A numeric vector for the temperatures to sample.
 #'
+#' @noRd
 #'
-make_temps <- function(params, temp_min, temp_max, n_temps) {
-    .Call(`_TPCdesign_make_temps`, params, temp_min, temp_max, n_temps)
+#'
+make_temps <- function(params, temp_min, temp_max) {
+    .Call(`_TPCdesign_make_temps`, params, temp_min, temp_max)
 }
 
-make_temps2 <- function(params, temp_min, temp_max) {
-    .Call(`_TPCdesign_make_temps2`, params, temp_min, temp_max)
+#' Objective function with RMSE returned
+#'
+#' @params Numeric vector of length 4 containing (in order)
+#'     log-transformed `CTmin`, log-transformed `CTmax`, log-transformed `a`,
+#'     and non-transformed `b`.
+#' @param y Numeric vector giving the observed performance values for each
+#'     temperature. It's recommended to scale this vector to have a max value
+#'     of 1 by dividing by its max value.
+#'     Must be the same length as `temp`.
+#' @param temp Numeric vector giving the observed temperatures for each
+#'     performance value. Must be the same length as `y`.
+#'
+#' @returns A single numeric giving the RMSE between observed performance
+#'     values and those predicted based on the input parameters.
+#'
+#' @noRd
+#'
+#'
+rmse_objective <- function(params, y, temp) {
+    .Call(`_TPCdesign_rmse_objective`, params, y, temp)
+}
+
+#' Simulate data with gamma distributed error
+#'
+#' @noRd
+#'
+sim_gamma_data <- function(temp, n_reps, obs_cv, CTmin, CTmax, a, b) {
+    .Call(`_TPCdesign_sim_gamma_data`, temp, n_reps, obs_cv, CTmin, CTmax, a, b)
 }
 
