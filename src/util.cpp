@@ -287,14 +287,22 @@ DataFrame sim_gamma_data(NumericVector temp,
 
     double obs_cv2 = obs_cv * obs_cv;
     double shape = 1 / obs_cv2;
-    double scale;
+    double scale, mu, sigma;
 
     uint32 k = 0;
     for (uint32 i = 0; i < n_temps; i++) {
         scale = true_y[i] * obs_cv2;
         for (uint32 j = 0; j < n_reps; j++) {
             out_temp[k] = temp[i];
-            out_y[k] = R::rgamma(shape, scale);
+            if (scale <= 0) {
+                // approximate with normal if scale <= 0:
+                mu = shape * scale;
+                sigma = std::sqrt(shape * scale * scale);
+                out_y[k] = R::rnorm(mu, sigma);
+            } else {
+                // otherwise, use gamma:
+                out_y[k] = R::rgamma(shape, scale);
+            }
             k++;
         }
     }
