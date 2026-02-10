@@ -1,6 +1,7 @@
 # For avoiding warnings for comparing nonsensible inputs
 comparable <- function(x) {
-    return(!is.null(x) && (is.vector(x) || is.array(x)) && !any(is.na(x)))
+    if (is.list(x) || is.vector(x)) return(!is.null(x) && !any(is.na(x)))
+    return(TRUE)
 }
 
 # Check for a single, whole number, perhaps in range
@@ -63,9 +64,11 @@ is_type <- function(x, par, type, len_min = NULL, len_max = NULL, .min = NULL, .
         if (all_good && !is.null(.max)) all_good <- all(x <= .max)
     }
     if (!all_good) {
-        err_suff <- paste("an object of type", type)
-        if (!is.null(L)) err_suff <- paste(err_suff, "with possible length(s) =",
-                                           paste(L, collapse = ", "))
+        if (is.character(type)) err_suff <- paste("an object of type", type)
+        if (is.function(type)) err_suff <- paste("an object of type",
+                                                 deparse(substitute(type)))
+        if (!is.null(len_min)) err_suff <- paste0(err_suff, "; min length = ", len_min)
+        if (!is.null(len_max)) err_suff <- paste0(err_suff, "; max length = ", len_max)
         if (!is.null(.min)) err_suff <- paste0(err_suff, "; min value(s) = ", .min)
         if (!is.null(.max)) err_suff <- paste0(err_suff, "; max value(s) = ", .max)
         err_msg(par, err_suff)
@@ -81,3 +84,21 @@ err_msg <- function(par, ...) {
                  par, paste(...)), call. = FALSE)
 }
 
+
+
+
+# Add elements to argument list
+add_args <- function(args0, extra_args, naughty_pars = c()) {
+    args <- args0
+    if (length(extra_args) > 0) {
+        if (is.null(names(extra_args)) || any(names(extra_args) == "")) {
+            stop("optim_args must only contain named elements")
+        }
+        if (length(naughty_pars) > 0 && any(naughty_pars %in% names(extra_args))) {
+            stop("Cannot pass these as additional parameters: ",
+                 paste(naught_pars, collapse = ", "))
+        }
+        for (n in names(extra_args)) args[[n]] <- extra_args[[n]]
+    }
+    return(args)
+}

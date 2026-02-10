@@ -35,18 +35,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // briere2_tpc
-NumericVector briere2_tpc(NumericVector temp, const double& CTmin, const double& CTmax, const double& a, const double& b, const bool& scale);
-RcppExport SEXP _TPCdesign_briere2_tpc(SEXP tempSEXP, SEXP CTminSEXP, SEXP CTmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scaleSEXP) {
+NumericVector briere2_tpc(NumericVector temp, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale);
+RcppExport SEXP _TPCdesign_briere2_tpc(SEXP tempSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scaleSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
-    Rcpp::traits::input_parameter< const double& >::type CTmin(CTminSEXP);
-    Rcpp::traits::input_parameter< const double& >::type CTmax(CTmaxSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmin(ctminSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmax(ctmaxSEXP);
     Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
     Rcpp::traits::input_parameter< const bool& >::type scale(scaleSEXP);
-    rcpp_result_gen = Rcpp::wrap(briere2_tpc(temp, CTmin, CTmax, a, b, scale));
+    rcpp_result_gen = Rcpp::wrap(briere2_tpc(temp, ctmin, ctmax, a, b, scale));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,32 +64,34 @@ BEGIN_RCPP
 END_RCPP
 }
 // rmse_objective
-double rmse_objective(NumericVector params, NumericVector y, NumericVector temp);
-RcppExport SEXP _TPCdesign_rmse_objective(SEXP paramsSEXP, SEXP ySEXP, SEXP tempSEXP) {
+double rmse_objective(NumericVector params, NumericVector y, NumericVector temp, const bool& scale_tpc);
+RcppExport SEXP _TPCdesign_rmse_objective(SEXP paramsSEXP, SEXP ySEXP, SEXP tempSEXP, SEXP scale_tpcSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type params(paramsSEXP);
     Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP);
     Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
-    rcpp_result_gen = Rcpp::wrap(rmse_objective(params, y, temp));
+    Rcpp::traits::input_parameter< const bool& >::type scale_tpc(scale_tpcSEXP);
+    rcpp_result_gen = Rcpp::wrap(rmse_objective(params, y, temp, scale_tpc));
     return rcpp_result_gen;
 END_RCPP
 }
 // sim_gamma_data
-DataFrame sim_gamma_data(NumericVector temp, const int& n_reps, const double& obs_cv, const double& CTmin, const double& CTmax, const double& a, const double& b);
-RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP CTminSEXP, SEXP CTmaxSEXP, SEXP aSEXP, SEXP bSEXP) {
+DataFrame sim_gamma_data(NumericVector temp, const int& n_reps, const double& obs_cv, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale_tpc);
+RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scale_tpcSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< NumericVector >::type temp(tempSEXP);
     Rcpp::traits::input_parameter< const int& >::type n_reps(n_repsSEXP);
     Rcpp::traits::input_parameter< const double& >::type obs_cv(obs_cvSEXP);
-    Rcpp::traits::input_parameter< const double& >::type CTmin(CTminSEXP);
-    Rcpp::traits::input_parameter< const double& >::type CTmax(CTmaxSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmin(ctminSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmax(ctmaxSEXP);
     Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
     Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_gamma_data(temp, n_reps, obs_cv, CTmin, CTmax, a, b));
+    Rcpp::traits::input_parameter< const bool& >::type scale_tpc(scale_tpcSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -99,8 +101,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
     {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 3},
-    {"_TPCdesign_rmse_objective", (DL_FUNC) &_TPCdesign_rmse_objective, 3},
-    {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 7},
+    {"_TPCdesign_rmse_objective", (DL_FUNC) &_TPCdesign_rmse_objective, 4},
+    {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 8},
     {NULL, NULL, 0}
 };
 

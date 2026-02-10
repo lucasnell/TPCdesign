@@ -11,6 +11,7 @@ using namespace Rcpp;
 
 
 
+
 inline void logit_cpp(const double& p, double& out) {
     out = std::log(p / (1-p));
     return;
@@ -70,8 +71,8 @@ NumericVector inv_logit(NumericVector a){
 
 
 inline NumericVector briere2_tpc_cpp(NumericVector temp,
-                                     const double& CTmin,
-                                     const double& CTmax,
+                                     const double& ctmin,
+                                     const double& ctmax,
                                      const double& a,
                                      const double& b,
                                      const bool& scale) {
@@ -79,8 +80,8 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
     NumericVector out(temp.size());
     double out_max = 0;
     for (uint32 i = 0; i < temp.size(); i++) {
-        out[i] = a * temp[i] * (temp[i] - CTmin) *
-            std::pow(std::max(CTmax - temp[i], 0.0), b);
+        out[i] = a * temp[i] * (temp[i] - ctmin) *
+            std::pow(std::max(ctmax - temp[i], 0.0), b);
         if (out[i] > out_max) out_max = out[i];
     }
     if (scale) {
@@ -95,19 +96,18 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
 
 //' Brière-2 thermal performance curve (TPC)
 //'
-//' Note that this TPC does not perform well when CTmin is positive, but
+//' Note that this TPC does not perform well when ctmin is positive, but
 //' there are negative temperatures.
-//' For example, if you run `briere2_tpc(c(-10, 0, 10, 20), CTmin = 5,
-//' CTmax = 30, a = 1, b = 0.2)`, you'll see that a temperature of `-10`
+//' For example, if you run `briere2_tpc(c(-10, 0, 10), ctmin = 5,
+//' ctmax = 30, a = 1, b = 0.2, TRUE)`, you'll see that a temperature of `-10`
 //' gives a greater performance value than `10`.
 //'
 //' @param temp Numeric vector of temperatures
-//' @param CTmin Single numeric for parameter CTmin
-//' @param CTmax Single numeric for parameter CTmax
+//' @param ctmin Single numeric for parameter ctmin
+//' @param ctmax Single numeric for parameter ctmax
 //' @param a Single numeric for parameter a
 //' @param b Single numeric for parameter b
 //' @param scale Single logical for whether to scale to make max value 1.
-//'     Defaults to `TRUE`
 //'
 //' @returns A numeric vector for measure of performance for each in `temp`
 //'
@@ -115,14 +115,15 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
 //'
 //[[Rcpp::export]]
 NumericVector briere2_tpc(NumericVector temp,
-                          const double& CTmin,
-                          const double& CTmax,
+                          const double& ctmin,
+                          const double& ctmax,
                           const double& a,
                           const double& b,
-                          const bool& scale = false) {
-    NumericVector out = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, scale);
+                          const bool& scale) {
+    NumericVector out = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale);
     return out;
 }
+
 
 
 
@@ -139,7 +140,7 @@ NumericVector briere2_tpc(NumericVector temp,
 
 //' Make vector of temperatures for input of parameters
 //'
-//' @param temp Numeric vector of parameters.
+//' @param params Numeric vector of parameters.
 //'     The length of this vector must be equal to the number of desired
 //'     temperatures plus 1. A vector of length `<2` returns an error.
 //'     The last item in this vector must be the logit-transformed proportion
@@ -151,12 +152,11 @@ NumericVector briere2_tpc(NumericVector temp,
 //'     The remaining items are the logit-transformed weights affecting
 //'     the distance between the remaining sampled temperatures and
 //'     the previous ones.
-//' @param temp_min Single numeric for the minimum possible temperature allowed.
-//' @param temp_max Single numeric for the maximum possible temperature allowed.
+//' @inheritParams design_temps
 //'
 //' @returns A numeric vector for the temperatures to sample.
 //'
-//' @noRd
+//' @export
 //'
 //'
 //[[Rcpp::export]]
@@ -202,15 +202,16 @@ NumericVector make_temps(NumericVector params,
 
 //' Objective function with RMSE returned
 //'
-//' @params Numeric vector of length 4 containing (in order)
-//'     log-transformed `CTmin`, log-transformed `CTmax`, log-transformed `a`,
-//'     and non-transformed `b`.
+//' @param params Numeric vector of length 4 containing (in order)
+//'     untransformed `ctmin`, untransformed `ctmax`, log-transformed `a`,
+//'     and log-transformed `b`.
 //' @param y Numeric vector giving the observed performance values for each
 //'     temperature. It's recommended to scale this vector to have a max value
 //'     of 1 by dividing by its max value.
 //'     Must be the same length as `temp`.
 //' @param temp Numeric vector giving the observed temperatures for each
 //'     performance value. Must be the same length as `y`.
+//' @param scale_tpc Single logical for whether to scale TPC to make max value 1.
 //'
 //' @returns A single numeric giving the RMSE between observed performance
 //'     values and those predicted based on the input parameters.
@@ -221,17 +222,18 @@ NumericVector make_temps(NumericVector params,
 //[[Rcpp::export]]
 double rmse_objective(NumericVector params,
                       NumericVector y,
-                      NumericVector temp) {
+                      NumericVector temp,
+                      const bool& scale_tpc) {
 
     if (params.size() != 4) stop("params must be length 4");
     if (y.size() != temp.size()) stop("y must be same length as temp");
 
-    double CTmin = params[0];
-    double CTmax = params[1];
+    double ctmin = params[0];
+    double ctmax = params[1];
     double a = std::exp(params[2]);
     double b = std::exp(params[3]);
 
-    NumericVector y_pred = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, false);
+    NumericVector y_pred = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
 
     double out = 0;
     for (uint32 i = 0; i < y.size(); i++) {
@@ -258,26 +260,35 @@ double rmse_objective(NumericVector params,
  */
 
 
-//' Simulate data with gamma distributed error
+//' Simulate data with gamma distributed error (or normal approximation)
 //'
-//' @noRd
+//' @param temp Numeric vector giving the observed temperatures for each
+//'     performance value.
+//' @inheritParams design_temps
+//'
+//' @export
+//'
+//' @returns A dataframe of temperatures (column `"temp"`) and
+//'     performance values (column `"y"`) with gamma (or normal approximation)
+//'     error.
 //'
 //[[Rcpp::export]]
 DataFrame sim_gamma_data(NumericVector temp,
                          const int& n_reps,
                          const double& obs_cv,
-                         const double& CTmin,
-                         const double& CTmax,
+                         const double& ctmin,
+                         const double& ctmax,
                          const double& a,
-                         const double& b) {
+                         const double& b,
+                         const bool& scale_tpc = true) {
 
     if (n_reps < 1) stop("n_reps must be >= 1");
     if (obs_cv < 0) stop("obs_cv must be >= 0");
-    // if (CTmin >= CTmax) stop("CTmin must be < CTmax");
+    // if (ctmin >= ctmax) stop("ctmin must be < ctmax");
     if (a < 0) stop("a must be >= 0");
     if (b < 0) stop("b must be >= 0");
 
-    NumericVector true_y = briere2_tpc_cpp(temp, CTmin, CTmax, a, b, false);
+    NumericVector true_y = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
 
     uint32 n_temps = temp.size();
     uint32 n_rows = (uint32)n_reps * n_temps;

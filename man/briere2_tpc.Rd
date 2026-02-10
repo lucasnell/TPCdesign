@@ -4,28 +4,27 @@
 \alias{briere2_tpc}
 \title{Brière-2 thermal performance curve (TPC)}
 \usage{
-briere2_tpc(temp, CTmin, CTmax, a, b, scale = FALSE)
+briere2_tpc(temp, ctmin, ctmax, a, b, scale)
 }
 \arguments{
 \item{temp}{Numeric vector of temperatures}
 
-\item{CTmin}{Single numeric for parameter CTmin}
+\item{ctmin}{Single numeric for parameter ctmin}
 
-\item{CTmax}{Single numeric for parameter CTmax}
+\item{ctmax}{Single numeric for parameter ctmax}
 
 \item{a}{Single numeric for parameter a}
 
 \item{b}{Single numeric for parameter b}
 
-\item{scale}{Single logical for whether to scale to make max value 1.
-Defaults to \code{TRUE}}
+\item{scale}{Single logical for whether to scale to make max value 1.}
 }
 \value{
 A numeric vector for measure of performance for each in \code{temp}
 }
 \description{
-Note that this TPC does not perform well when CTmin is positive, but
+Note that this TPC does not perform well when ctmin is positive, but
 there are negative temperatures.
-For example, if you run \code{briere2_tpc(c(-10, 0, 10, 20), CTmin = 5, CTmax = 30, a = 1, b = 0.2)}, you'll see that a temperature of \code{-10}
+For example, if you run \code{briere2_tpc(c(-10, 0, 10), ctmin = 5, ctmax = 30, a = 1, b = 0.2, TRUE)}, you'll see that a temperature of \code{-10}
 gives a greater performance value than \code{10}.
 }
