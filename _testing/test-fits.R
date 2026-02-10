@@ -1,4 +1,6 @@
 
+
+
 library(tidyverse)
 library(nls.multstart)
 library(estimatePMR)
@@ -7,121 +9,6 @@ library(estimatePMR)
 library(TPCdesign)
 
 
-
-
-
-make_temps <- TPCdesign:::make_temps
-make_temps2 <- TPCdesign:::make_temps2
-
-
-
-
-
-fit_coefs <- function(obs, verbose, nls = TRUE) {
-
-    if (nls) {
-
-        # 4) Fit model to these n_temps points
-        # First try nls_multstart which is fast but often has issues converging
-        fit <- nls_multstart(
-            formula     = y ~ a * temp * (temp - CTmin) * pmax(CTmax - temp, 0)^b,
-            data        = obs,
-            start_lower = c(a = 0, CTmin = 0,  CTmax = 30, b = 0.01),
-            start_upper = c(a = 2, CTmin = 15, CTmax = 50, b = 3),
-            iter        = 50,
-            # supp_errors = "Y",
-            control = list(maxfev = 5e3, maxiter = 1e3),
-            lhstype = "improved")
-
-        if (is.null(fit)) {
-            if (verbose) warning("nls_multistart returned NULL")
-            # This will result in objective function returning very large
-            # output if fit fails
-            return(NULL)
-        }
-
-        if (!fit$convInfo$isConv) {
-            if (verbose) warning("fit didn't converge")
-            # This will result in objective function returning very large
-            # output if fit fails
-            return(NULL)
-        }
-
-        return(coef(fit)[c("CTmin", "CTmax", "a", "b")])
-
-    }
-
-    fn <- function(params, obs) {
-        y <- briere2_tpc(obs$temp,
-                         CTmin = exp(params[1]),
-                         CTmax = exp(params[2]),
-                         a = exp(params[3]),
-                         b = params[4])
-        return(sqrt(mean((obs$y - y)^2)))
-    }
-
-    op <- optim(par = c(log(7.5), log(40), log(1), 0.15), fn = fn, obs = obs)
-    coefs <- op$par
-    coefs[1:3] <- exp(coefs[1:3])
-    names(coefs) <- c("CTmin", "CTmax", "a", "b")
-    return(coefs)
-
-
-    # # If that doesn't work, use winnowing_optim which is slower but more reliable
-    # if (!fit$convInfo$isConv) {
-    #     fit <- winnowing_optim(\(p, obs) {
-    #         y <- briere2_tpc(obs$temp,
-    #                          a = exp(p[[1]]),
-    #                          CTmin = exp(p[[2]]),
-    #                          CTmax = exp(p[[3]]),
-    #                          b = p[[4]],
-    #                          scale = FALSE)
-    #         return(sqrt(mean((obs$y - y)^2)))
-    #     },
-    #     lower_bounds = c(a = log(1e-9),
-    #                      CTmin = log(1),
-    #                      CTmax = log(30),
-    #                      b = 0.01),
-    #     upper_bounds = c(a = log(2),
-    #                      CTmin = log(15),
-    #                      CTmax = log(50),
-    #                      b = 3),
-    #     fn_args = list(obs = obs),
-    #     n_bevals = 100L,
-    #     n_boxes = 1000L,
-    #     n_outputs = 1L,
-    #     controls = list(list(maxit = 1000, reltol = 1e-08)),
-    #     optimizers = c(optim))
-    #
-    #     # Extract fitted coefficients
-    #     coefs <- fit[[1]][["par"]]
-    #     names(coefs) <- c("a", "CTmin", "CTmax", "b")
-    #     for (i in 1:3) coefs[[i]] <- exp(coefs[[i]])
-    #
-    #     if (fit[[1]][["convergence"]] != 0L) {
-    #         if (verbose) warning("fit didn't converge")
-    #         # This will result in objective function returning very large
-    #         # output if fit fails
-    #         return(NULL)
-    #     }
-    #
-    # } else {
-    #
-    #     # Extract fitted coefficients
-    #     coefs <- coef(fit)
-    #
-    # }
-    #
-    # return(coefs)
-}
-
-
-
-
-
-# ============================================================================*
-# ============================================================================*
-# ============================================================================*
 
 
 scenario_bs <- c(
@@ -135,9 +22,111 @@ set.seed(567834)
 curve_combos <- tibble(skew = names(scenario_bs)) |>
     mutate(a = 1,
            b = map_dbl(skew, \(x) scenario_bs[[x]])) |>
-    mutate(CTmin = map(1:n(), \(i) rnorm(100, mean = 5, sd = 2)),
-           CTmax = map(1:n(), \(i) rnorm(100, mean = 40, sd = 2))) |>
-    unnest(c(CTmin, CTmax))
+    mutate(ctmin = map(1:n(), \(i) rnorm(100, mean = 5, sd = 2)),
+           ctmax = map(1:n(), \(i) rnorm(100, mean = 40, sd = 2))) |>
+    unnest(c(ctmin, ctmax))
+
+
+n_temps = 6L
+n_reps = 5L
+obs_cv = 0.2
+temp_min = 0
+temp_max = 50
+ctmin = curve_combos$ctmin[[1]]
+ctmax = curve_combos$ctmax[[1]]
+a = curve_combos$a[[1]]
+b = curve_combos$b[[1]]
+# rm(ctmin, ctmax, a, b)
+
+
+
+
+# Takes ~10 sec
+op <- design_temps(n_temps = n_temps,
+                   n_reps = n_reps,
+                   obs_cv = obs_cv,
+                   temp_min = temp_min,
+                   temp_max = temp_max,
+                   ctmin = ctmin,
+                   ctmax = ctmax,
+                   a = a,
+                   b = b,
+                   scale_tpc = TRUE)
+op
+
+
+# ==================================================*
+# how well do these temps work compared to evenly distributed?
+# ==================================================*
+
+
+fits <- map(list(designed = op, even = NA),
+            \(op) {
+                if (isTRUE(is.na(op))) {
+                    temps <- seq(temp_min, temp_max, length.out = n_temps+2L)[-1]
+                    temps <- head(temps, -1L)
+                } else {
+                    temps <- op$temps
+                }
+                obs <- sim_gamma_data(temps, n_reps, obs_cv, ctmin, ctmax, a, b,
+                                      scale_tpc = TRUE)
+                fit <- nls_multstart(
+                    formula     = y ~ a * temp * (temp - CTmin) *
+                        pmax(CTmax - temp, 0)^b,
+                    data        = obs,
+                    start_lower = c(a = 0,  CTmin = 0,  CTmax = 30, b = 0.01),
+                    start_upper = c(a = 2,  CTmin = 15, CTmax = 50, b = 3),
+                    iter        = 50,
+                    supp_errors = "Y",
+                    control = list(maxfev = 5e3, maxiter = 1e3),
+                    lhstype = "improved")
+                return(fit)
+            })
+
+coefs <- map(fits, \(x) {
+    z <- coef(x)[c("CTmin", "CTmax", "a", "b")]
+    names(z) <- tolower(names(z))
+    return(z)
+})
+
+Tgrid <- seq(temp_min, temp_max, length.out = 101)
+
+true_grid <- briere2_tpc(temp = Tgrid, ctmin = ctmin, ctmax = ctmax, b = b, a = a,
+                         scale = TRUE)
+
+# We'll compute predicted curve by replicating the same Brière expression:
+pred_grids <- imap(coefs, \(cfs, type) {
+    y <- briere2_tpc(temp = Tgrid,
+                     ctmin = cfs[["ctmin"]],
+                     ctmax = cfs[["ctmax"]],
+                     a = cfs[["a"]],
+                     b = cfs[["b"]],
+                     scale = TRUE)
+    tibble(type = .env$type, temp = Tgrid, y = .env$y)
+}) |>
+    list_rbind() |>
+    bind_rows(tibble(type = "true", temp = Tgrid, y = true_grid)) |>
+    mutate(type = factor(type, levels = c(names(coefs), "true")))
+
+pred_grids |>
+    ggplot(aes(temp, y, color = type, linetype = type, linewidth = type)) +
+    geom_line() +
+    scale_linewidth_manual(values = c(rep(1, 5), 1.5)) +
+    scale_linetype_manual(values = c(rep("solid", 5), "22")) +
+    scale_color_manual(values = c(viridisLite::plasma(length(coefs),
+                                                      begin = 0.2), "black")) +
+    coord_cartesian(ylim = c(0, NA))
+
+
+cbind(true = c(ctmin, ctmax, a, b), do.call(cbind, coefs))
+
+
+
+
+# ============================================================================*
+# ============================================================================*
+# ============================================================================*
+
 
 
 
@@ -167,7 +156,7 @@ temp_fn <- function(params,
     output <- match.arg(tolower(output), c("rmse", "ctmin", "ctmax", "b", "a"))
 
     # design_temps <- make_temps(params, temp_min, temp_max, n_temps)
-    design_temps <- make_temps2(params, temp_min, temp_max)
+    design_temps <- make_temps(params, temp_min, temp_max)
 
     # 2) Compute "true" unscaled performance at design points (with a = 1)
     true_vals <- briere2_tpc(temp = design_temps, a = a, CTmin = CTmin,
@@ -363,7 +352,7 @@ fits <- map(list("op" = op, "op2" = op2, "op3" = op3, "op4" = op4, "even" = NA),
                 if (isTRUE(is.na(op))) {
                     temps <- seq(temp_min, temp_max, length.out = n_temps)
                 } else {
-                    temps <- make_temps2(op$par, temp_min, temp_max)
+                    temps <- make_temps(op$par, temp_min, temp_max)
                 }
                 true_vals <- briere2_tpc(temp = temps, CTmin = CTmin,
                                          CTmax = CTmax, b = b, a = a)
