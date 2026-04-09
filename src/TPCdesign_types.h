@@ -8,6 +8,13 @@
  ********************************************************
  */
 
+#ifndef CONFIG_LOADED
+#define CONFIG_LOADED
+#define RCPP_ARMADILLO_RETURN_ANYVEC_AS_VECTOR
+#define ARMA_NO_DEBUG
+#define ARMA_USE_BLAS
+#endif
+
 #include <RcppArmadillo.h>
 #include <cstdint>
 

@@ -1,8 +1,9 @@
 
-#include <RcppArmadillo.h>
+
+#include "TPCdesign_types.h"
+
 #include <algorithm>
 #include <math.h>
-#include "TPCdesign_types.h"
 
 
 using namespace Rcpp;
@@ -70,19 +71,19 @@ NumericVector inv_logit(NumericVector a){
  */
 
 
-inline NumericVector briere2_tpc_cpp(NumericVector temp,
-                                     const double& ctmin,
-                                     const double& ctmax,
-                                     const double& a,
-                                     const double& b,
-                                     const bool& scale) {
+inline arma::vec briere2_tpc_cpp(const arma::vec& temp,
+                                 const double& ctmin,
+                                 const double& ctmax,
+                                 const double& a,
+                                 const double& b,
+                                 const bool& scale) {
 
-    NumericVector out(temp.size());
+    arma::vec out(temp.n_elem, arma::fill::none);
     double out_max = 0;
-    for (uint32 i = 0; i < temp.size(); i++) {
-        out[i] = a * temp[i] * (temp[i] - ctmin) *
-            std::pow(std::max(ctmax - temp[i], 0.0), b);
-        if (out[i] > out_max) out_max = out[i];
+    for (uint32 i = 0; i < temp.n_elem; i++) {
+        out.at(i) = a * temp.at(i) * (temp.at(i) - ctmin) *
+            std::pow(std::max(ctmax - temp.at(i), 0.0), b);
+        if (out.at(i) > out_max) out_max = out.at(i);
     }
     if (scale) {
         if (out_max <= 0) out_max = 1;
@@ -90,6 +91,7 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
     }
     return out;
 }
+
 
 
 
@@ -114,18 +116,100 @@ inline NumericVector briere2_tpc_cpp(NumericVector temp,
 //' @export
 //'
 //[[Rcpp::export]]
-NumericVector briere2_tpc(NumericVector temp,
+arma::vec briere2_tpc(const arma::vec& temp,
                           const double& ctmin,
                           const double& ctmax,
                           const double& a,
                           const double& b,
                           const bool& scale) {
-    NumericVector out = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale);
+    arma::vec out = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale);
     return out;
 }
 
 
 
+//' First derivative of Brière-2 thermal performance curve (TPC)
+//'
+//'
+//' @inheritParams briere2_tpc
+//'
+//' @returns A numeric vector for first derivative of measures of
+//' performance for each in `temp`
+//'
+//' @export
+//'
+//[[Rcpp::export]]
+arma::vec briere2_tpc_deriv(const arma::vec& temp,
+                            const double& ctmin,
+                            const double& ctmax,
+                            const double& a,
+                            const double& b) {
+
+    arma::vec out(temp.n_elem, arma::fill::none);
+    double a_ctmax_T_b, a_ctmax_T_b1, temp_ctmin;
+    for (uint32 i = 0; i < temp.n_elem; i++) {
+        const double& T(temp.at(i));
+        if (T >= ctmax || T <= ctmin) {
+            out.at(i) = 0;
+        } else {
+            a_ctmax_T_b = a * std::pow(ctmax - T, b); // a (ctmax - T)^b
+            a_ctmax_T_b1 = a_ctmax_T_b / (ctmax - T); // a (ctmax - T)^(b-1)
+            temp_ctmin = T - ctmin;
+            out.at(i) = a_ctmax_T_b * T + a_ctmax_T_b * temp_ctmin -
+                b * a_ctmax_T_b1 * T * temp_ctmin;
+        }
+    }
+    /*
+     a (ctmax - T)^b T + a (ctmax - T)^b (T - ctmin) -
+        a b (ctmax - T)^(b - 1) T (T - ctmin)
+     */
+
+    return out;
+}
+
+
+//' Second derivative of Brière-2 thermal performance curve (TPC)
+//'
+//'
+//' @inheritParams briere2_tpc
+//'
+//' @returns A numeric vector for second derivative of measures of
+//' performance for each in `temp`
+//'
+//' @export
+//'
+//[[Rcpp::export]]
+arma::vec briere2_tpc_deriv2(const arma::vec& temp,
+                             const double& ctmin,
+                             const double& ctmax,
+                             const double& a,
+                             const double& b) {
+
+    arma::vec out(temp.n_elem, arma::fill::none);
+    double a_ctmax_T_b, a_ctmax_T_b1, a_ctmax_T_b2;
+    for (uint32 i = 0; i < temp.n_elem; i++) {
+        const double& T(temp.at(i));
+        if (T >= ctmax || T <= ctmin) {
+            out.at(i) = 0;
+        } else {
+            a_ctmax_T_b = a * std::pow(ctmax - T, b); // a (ctmax - T)^b
+            a_ctmax_T_b1 = a_ctmax_T_b / (ctmax - T); // a (ctmax - T)^(b - 1)
+            a_ctmax_T_b2 = a_ctmax_T_b1 / (ctmax - T); // a (ctmax - T)^(b - 2)
+            out.at(i) = 2 * a_ctmax_T_b +
+                (b-1) * b * a_ctmax_T_b2 * T * (T - ctmin) -
+                2 * b * a_ctmax_T_b1 * (2 * T - ctmin);
+        }
+
+        /*
+         2 a (ctmax - T)^b +
+            (b - 1) b a (ctmax - T)^(b - 2) T (T - ctmin) -
+            2 b a (ctmax - T)^(b - 1) (2 T - ctmin)
+         */
+
+    }
+
+    return out;
+}
 
 
 
@@ -220,26 +304,26 @@ NumericVector make_temps(NumericVector params,
 //'
 //'
 //[[Rcpp::export]]
-double rmse_objective(NumericVector params,
-                      NumericVector y,
-                      NumericVector temp,
+double rmse_objective(const arma::vec& params,
+                      const arma::vec& y,
+                      const arma::vec& temp,
                       const bool& scale_tpc) {
 
-    if (params.size() != 4) stop("params must be length 4");
-    if (y.size() != temp.size()) stop("y must be same length as temp");
+    if (params.n_elem != 4) stop("params must be length 4");
+    if (y.n_elem != temp.n_elem) stop("y must be same length as temp");
 
     double ctmin = params[0];
     double ctmax = params[1];
     double a = std::exp(params[2]);
     double b = std::exp(params[3]);
 
-    NumericVector y_pred = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
+    arma::vec y_pred = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
 
     double out = 0;
-    for (uint32 i = 0; i < y.size(); i++) {
-        out += ((y[i] - y_pred[i]) * (y[i] - y_pred[i]));
+    for (uint32 i = 0; i < y.n_elem; i++) {
+        out += ((y.at(i) - y_pred.at(i)) * (y.at(i) - y_pred.at(i)));
     }
-    out /= static_cast<double>(y.size());
+    out /= static_cast<double>(y.n_elem);
     out = std::sqrt(out);
     if (Rcpp::traits::is_infinite<REALSXP>(out) ||
         NumericVector::is_na(out)) out = 1e10;
@@ -273,7 +357,7 @@ double rmse_objective(NumericVector params,
 //'     error.
 //'
 //[[Rcpp::export]]
-DataFrame sim_gamma_data(NumericVector temp,
+DataFrame sim_gamma_data(const arma::vec& temp,
                          const int& n_reps,
                          const double& obs_cv,
                          const double& ctmin,
@@ -288,13 +372,13 @@ DataFrame sim_gamma_data(NumericVector temp,
     if (a < 0) stop("a must be >= 0");
     if (b < 0) stop("b must be >= 0");
 
-    NumericVector true_y = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
+    arma::vec true_y = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
 
-    uint32 n_temps = temp.size();
+    uint32 n_temps = temp.n_elem;
     uint32 n_rows = (uint32)n_reps * n_temps;
 
-    NumericVector out_temp(n_rows);
-    NumericVector out_y(n_rows);
+    arma::vec out_temp(n_rows, arma::fill::none);
+    arma::vec out_y(n_rows, arma::fill::none);
 
     double obs_cv2 = obs_cv * obs_cv;
     double shape = 1 / obs_cv2;
@@ -302,17 +386,17 @@ DataFrame sim_gamma_data(NumericVector temp,
 
     uint32 k = 0;
     for (uint32 i = 0; i < n_temps; i++) {
-        scale = true_y[i] * obs_cv2;
+        scale = true_y.at(i) * obs_cv2;
         for (uint32 j = 0; j < n_reps; j++) {
-            out_temp[k] = temp[i];
+            out_temp.at(k) = temp.at(i);
             if (scale <= 0) {
                 // approximate with normal if scale <= 0:
                 mu = shape * scale;
                 sigma = std::sqrt(shape * scale * scale);
-                out_y[k] = R::rnorm(mu, sigma);
+                out_y.at(k) = R::rnorm(mu, sigma);
             } else {
                 // otherwise, use gamma:
-                out_y[k] = R::rgamma(shape, scale);
+                out_y.at(k) = R::rgamma(shape, scale);
             }
             k++;
         }
