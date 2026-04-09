@@ -2,7 +2,6 @@
 
 export(briere2_tpc)
 export(briere2_tpc_deriv)
-export(briere2_tpc_deriv2)
 export(design_temps)
 export(inv_logit)
 export(logit)

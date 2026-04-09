@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{briere2_tpc_deriv}
 \alias{briere2_tpc_deriv}
-\title{First derivative of Brière-2 thermal performance curve (TPC)}
+\title{Derivative of Brière-2 thermal performance curve (TPC) with respect to time}
 \usage{
 briere2_tpc_deriv(temp, ctmin, ctmax, a, b)
 }
@@ -22,5 +22,5 @@ A numeric vector for first derivative of measures of
 performance for each in \code{temp}
 }
 \description{
-First derivative of Brière-2 thermal performance curve (TPC)
+Derivative of Brière-2 thermal performance curve (TPC) with respect to time
 }

@@ -128,7 +128,9 @@ arma::vec briere2_tpc(const arma::vec& temp,
 
 
 
-//' First derivative of Brière-2 thermal performance curve (TPC)
+
+
+//' Derivative of Brière-2 thermal performance curve (TPC) with respect to time
 //'
 //'
 //' @inheritParams briere2_tpc
@@ -167,49 +169,6 @@ arma::vec briere2_tpc_deriv(const arma::vec& temp,
     return out;
 }
 
-
-//' Second derivative of Brière-2 thermal performance curve (TPC)
-//'
-//'
-//' @inheritParams briere2_tpc
-//'
-//' @returns A numeric vector for second derivative of measures of
-//' performance for each in `temp`
-//'
-//' @export
-//'
-//[[Rcpp::export]]
-arma::vec briere2_tpc_deriv2(const arma::vec& temp,
-                             const double& ctmin,
-                             const double& ctmax,
-                             const double& a,
-                             const double& b) {
-
-    arma::vec out(temp.n_elem, arma::fill::none);
-    double a_ctmax_T_b, a_ctmax_T_b1, a_ctmax_T_b2;
-    for (uint32 i = 0; i < temp.n_elem; i++) {
-        const double& T(temp.at(i));
-        if (T >= ctmax || T <= ctmin) {
-            out.at(i) = 0;
-        } else {
-            a_ctmax_T_b = a * std::pow(ctmax - T, b); // a (ctmax - T)^b
-            a_ctmax_T_b1 = a_ctmax_T_b / (ctmax - T); // a (ctmax - T)^(b - 1)
-            a_ctmax_T_b2 = a_ctmax_T_b1 / (ctmax - T); // a (ctmax - T)^(b - 2)
-            out.at(i) = 2 * a_ctmax_T_b +
-                (b-1) * b * a_ctmax_T_b2 * T * (T - ctmin) -
-                2 * b * a_ctmax_T_b1 * (2 * T - ctmin);
-        }
-
-        /*
-         2 a (ctmax - T)^b +
-            (b - 1) b a (ctmax - T)^(b - 2) T (T - ctmin) -
-            2 b a (ctmax - T)^(b - 1) (2 T - ctmin)
-         */
-
-    }
-
-    return out;
-}
 
 
 

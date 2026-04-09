@@ -65,21 +65,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// briere2_tpc_deriv2
-arma::vec briere2_tpc_deriv2(const arma::vec& temp, const double& ctmin, const double& ctmax, const double& a, const double& b);
-RcppExport SEXP _TPCdesign_briere2_tpc_deriv2(SEXP tempSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type temp(tempSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ctmin(ctminSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ctmax(ctmaxSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
-    rcpp_result_gen = Rcpp::wrap(briere2_tpc_deriv2(temp, ctmin, ctmax, a, b));
-    return rcpp_result_gen;
-END_RCPP
-}
 // make_temps
 NumericVector make_temps(NumericVector params, const double& temp_min, const double& temp_max);
 RcppExport SEXP _TPCdesign_make_temps(SEXP paramsSEXP, SEXP temp_minSEXP, SEXP temp_maxSEXP) {
@@ -131,7 +116,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
     {"_TPCdesign_briere2_tpc_deriv", (DL_FUNC) &_TPCdesign_briere2_tpc_deriv, 5},
-    {"_TPCdesign_briere2_tpc_deriv2", (DL_FUNC) &_TPCdesign_briere2_tpc_deriv2, 5},
     {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 3},
     {"_TPCdesign_rmse_objective", (DL_FUNC) &_TPCdesign_rmse_objective, 4},
     {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 8},

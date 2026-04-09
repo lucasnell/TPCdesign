@@ -41,7 +41,7 @@ briere2_tpc <- function(temp, ctmin, ctmax, a, b, scale) {
     .Call(`_TPCdesign_briere2_tpc`, temp, ctmin, ctmax, a, b, scale)
 }
 
-#' First derivative of Brière-2 thermal performance curve (TPC)
+#' Derivative of Brière-2 thermal performance curve (TPC) with respect to time
 #'
 #'
 #' @inheritParams briere2_tpc
@@ -53,20 +53,6 @@ briere2_tpc <- function(temp, ctmin, ctmax, a, b, scale) {
 #'
 briere2_tpc_deriv <- function(temp, ctmin, ctmax, a, b) {
     .Call(`_TPCdesign_briere2_tpc_deriv`, temp, ctmin, ctmax, a, b)
-}
-
-#' Second derivative of Brière-2 thermal performance curve (TPC)
-#'
-#'
-#' @inheritParams briere2_tpc
-#'
-#' @returns A numeric vector for second derivative of measures of
-#' performance for each in `temp`
-#'
-#' @export
-#'
-briere2_tpc_deriv2 <- function(temp, ctmin, ctmax, a, b) {
-    .Call(`_TPCdesign_briere2_tpc_deriv2`, temp, ctmin, ctmax, a, b)
 }
 
 #' Make vector of temperatures for input of parameters
