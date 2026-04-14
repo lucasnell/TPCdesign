@@ -1,36 +1,10 @@
 
 
-#include "TPCdesign_types.h"
-
-#include <algorithm>
-#include <math.h>
+#include "util.h"
+#include <random>
 
 
 using namespace Rcpp;
-
-
-
-
-
-
-inline void logit_cpp(const double& p, double& out) {
-    out = std::log(p / (1-p));
-    return;
-}
-inline void inv_logit_cpp(const double& a, double& out) {
-    out = 1 / (1 + std::exp(-a));
-    return;
-}
-
-inline double logit_cpp(const double& p) {
-    double a = std::log(p / (1-p));
-    return a;
-}
-inline double inv_logit_cpp(const double& a) {
-    double p = 1 / (1 + std::exp(-a));
-    return p;
-}
-
 
 
 //' Logit and inverse logit functions.
@@ -61,6 +35,44 @@ NumericVector inv_logit(NumericVector a){
 
 
 
+// Truncated normal for testing
+//[[Rcpp::export]]
+arma::vec trunc_rnorm(const uint32& n, const double& mu, const double& sigma) {
+
+    trunc_normal_distribution distr(mu, sigma);
+
+    pcg32 eng;
+    seed_pcg(eng);
+
+    arma::vec out(n, arma::fill::none);
+    for (double & x : out) x = distr(eng);
+
+    return out;
+
+}
+// Same as above, but it only returns the min and max
+//[[Rcpp::export]]
+arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sigma) {
+
+    trunc_normal_distribution distr(mu, sigma);
+
+    pcg32 eng;
+    seed_pcg(eng);
+
+    arma::vec out = {100, -100};
+    if (mu > 100) out.at(0) = mu;
+    double x;
+    for (uint32 i = 0; i < n; i++) {
+        x = distr(eng);
+        if (x < out.at(0)) out.at(0) = x;
+        if (x > out.at(1)) out.at(1) = x;
+    }
+
+    return out;
+
+}
+
+
 
 /*
 ===============================================================================*
@@ -69,29 +81,6 @@ NumericVector inv_logit(NumericVector a){
 ===============================================================================*
 ===============================================================================*
  */
-
-
-inline arma::vec briere2_tpc_cpp(const arma::vec& temp,
-                                 const double& ctmin,
-                                 const double& ctmax,
-                                 const double& a,
-                                 const double& b,
-                                 const bool& scale) {
-
-    arma::vec out(temp.n_elem, arma::fill::none);
-    double out_max = 0;
-    for (uint32 i = 0; i < temp.n_elem; i++) {
-        out.at(i) = a * temp.at(i) * (temp.at(i) - ctmin) *
-            std::pow(std::max(ctmax - temp.at(i), 0.0), b);
-        if (out.at(i) > out_max) out_max = out.at(i);
-    }
-    if (scale) {
-        if (out_max <= 0) out_max = 1;
-        for (double& x : out) x /= out_max;
-    }
-    return out;
-}
-
 
 
 
@@ -168,6 +157,13 @@ arma::vec briere2_tpc_deriv(const arma::vec& temp,
 
     return out;
 }
+
+
+
+
+
+
+
 
 
 
@@ -326,10 +322,17 @@ DataFrame sim_gamma_data(const arma::vec& temp,
                          const bool& scale_tpc = true) {
 
     if (n_reps < 1) stop("n_reps must be >= 1");
-    if (obs_cv < 0) stop("obs_cv must be >= 0");
+    if (obs_cv <= 0) stop("obs_cv must be > 0");
     // if (ctmin >= ctmax) stop("ctmin must be < ctmax");
     if (a < 0) stop("a must be >= 0");
     if (b < 0) stop("b must be >= 0");
+
+    pcg32 eng;
+    seed_pcg(eng);
+    trunc_normal_distribution tnorm_d;
+    typedef std::gamma_distribution<double> gamma_distribution;
+    typedef std::gamma_distribution<double>::param_type gamma_params;
+    gamma_distribution gamma_d;
 
     arma::vec true_y = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
 
@@ -346,18 +349,24 @@ DataFrame sim_gamma_data(const arma::vec& temp,
     uint32 k = 0;
     for (uint32 i = 0; i < n_temps; i++) {
         scale = true_y.at(i) * obs_cv2;
-        for (uint32 j = 0; j < n_reps; j++) {
-            out_temp.at(k) = temp.at(i);
-            if (scale <= 0) {
-                // approximate with normal if scale <= 0:
-                mu = shape * scale;
-                sigma = std::sqrt(shape * scale * scale);
-                out_y.at(k) = R::rnorm(mu, sigma);
-            } else {
-                // otherwise, use gamma:
-                out_y.at(k) = R::rgamma(shape, scale);
+        if (scale <= 0) {
+            // approximate with truncated normal if scale <= 0:
+            mu = shape * scale;
+            sigma = std::sqrt(shape * scale * scale);
+            tnorm_d.reset(mu, sigma);
+            for (uint32 j = 0; j < n_reps; j++) {
+                out_temp.at(k) = temp.at(i);
+                out_y.at(k) = tnorm_d(eng);
+                k++;
             }
-            k++;
+        } else {
+            // otherwise, use gamma:
+            gamma_d.param(gamma_params(shape, scale));
+            for (uint32 j = 0; j < n_reps; j++) {
+                out_temp.at(k) = temp.at(i);
+                out_y.at(k) = R::rgamma(shape, scale);
+                k++;
+            }
         }
     }
 

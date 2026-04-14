@@ -34,6 +34,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// trunc_rnorm
+arma::vec trunc_rnorm(const uint32& n, const double& mu, const double& sigma);
+RcppExport SEXP _TPCdesign_trunc_rnorm(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const uint32& >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const double& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(trunc_rnorm(n, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// trunc_rnorm_range
+arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sigma);
+RcppExport SEXP _TPCdesign_trunc_rnorm_range(SEXP nSEXP, SEXP muSEXP, SEXP sigmaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const uint32& >::type n(nSEXP);
+    Rcpp::traits::input_parameter< const double& >::type mu(muSEXP);
+    Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
+    rcpp_result_gen = Rcpp::wrap(trunc_rnorm_range(n, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
 // briere2_tpc
 arma::vec briere2_tpc(const arma::vec& temp, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale);
 RcppExport SEXP _TPCdesign_briere2_tpc(SEXP tempSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scaleSEXP) {
@@ -114,6 +140,8 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_logit", (DL_FUNC) &_TPCdesign_logit, 1},
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
+    {"_TPCdesign_trunc_rnorm", (DL_FUNC) &_TPCdesign_trunc_rnorm, 3},
+    {"_TPCdesign_trunc_rnorm_range", (DL_FUNC) &_TPCdesign_trunc_rnorm_range, 3},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
     {"_TPCdesign_briere2_tpc_deriv", (DL_FUNC) &_TPCdesign_briere2_tpc_deriv, 5},
     {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 3},

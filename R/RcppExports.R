@@ -18,6 +18,14 @@ inv_logit <- function(a) {
     .Call(`_TPCdesign_inv_logit`, a)
 }
 
+trunc_rnorm <- function(n, mu, sigma) {
+    .Call(`_TPCdesign_trunc_rnorm`, n, mu, sigma)
+}
+
+trunc_rnorm_range <- function(n, mu, sigma) {
+    .Call(`_TPCdesign_trunc_rnorm_range`, n, mu, sigma)
+}
+
 #' Brière-2 thermal performance curve (TPC)
 #'
 #' Note that this TPC does not perform well when ctmin is positive, but
