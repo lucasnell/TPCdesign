@@ -133,6 +133,94 @@ csv_files <- list(perfect = "_testing/refined-test-fits.csv",
 # ------------------------------------------------*
 
 
+# Takes ~3.5 min per row
+set.seed(75359468)
+off_fit_small_df <- tibble(n_temps = 5, n_reps = 10, b = 0.2, obs_cv = 0.2,
+                           ctmin = 5, ctmax = 50, a = 1) |>
+    one_combo_fits(j = 1L, prog = NULL)
+
+off_fit_small_df |>
+    filter(!is.na(method)) |>
+    group_by(method) |>
+    summarize(rmse = mean(rmse))
+# # A tibble: 2 × 2
+#   method  rmse
+#   <chr>  <dbl>
+# 1 design  262.
+# 2 even    432.
+
+
+set.seed(1977579122)
+off_fit_small_df2 <- map(1:2, \(j) {
+    one_combo_fits(j = j,
+                   input_df = crossing(n_temps = 9, n_reps = 9, b = c(0.2, 2),
+                                       obs_cv = 0.2, ctmin = 5, ctmax = 50,
+                                       a = 1),
+                   prog = NULL)
+    }) |>
+    list_rbind()
+
+off_fit_small_df2 |>
+    filter(!is.na(method)) |>
+    group_by(combo, method) |>
+    summarize(rmse = mean(rmse), .groups = "drop")
+# # A tibble: 4 × 3
+#   combo method  rmse
+#   <int> <chr>  <dbl>
+# 1     1 design  162.
+# 2     1 even    366.
+# 3     2 design 8187.
+# 4     2 even   9137.
+
+
+
+off_fit_small_df2 |>
+    filter(!is.na(method), combo == 2) |>
+    mutate(diff = ifelse(method == "design", abs(rmse - 9387), abs(rmse - 7965))) |>
+    group_by(rep) |>
+    summarize(diff = mean(diff)) |>
+    arrange(diff)
+
+off_fit_small_df2 |>
+    filter(!is.na(method), combo == 2, rep == 22)
+
+
+curve(briere2_tpc(x, 5, 50, 1, 2, FALSE), 0, 55, ylab = NA)
+curve(briere2_tpc(x, 4.90, 49.7, 0.872, 2.04, FALSE), add = TRUE, col = "red")
+curve(briere2_tpc(x, 4.3, 49.0, 1.65, 1.84, FALSE), add = TRUE, col = "red", lty = 2)
+
+
+
+
+
+
+y = "ctmax"
+
+
+off_fit_small_df2 |>
+    filter(!is.na(method), combo == 2) |>
+    ggplot(aes(.data[[y]])) +
+    geom_histogram(bins = 25, fill = "dodgerblue", alpha = 0.5) +
+    geom_vline(data = off_fit_small_df2 |>
+                   filter(!is.na(method), combo == 2) |>
+                   group_by(method) |>
+                   summarize(across(all_of(y), mean)),
+               aes(xintercept = .data[[y]]),
+               color = "dodgerblue") +
+    geom_vline(data = off_fit_small_df2 |> filter(is.na(method), combo == 2) |>
+                   slice(1) |> select(-method),
+               aes(xintercept = .data[[y]]), linetype = "22", color = "red") +
+    facet_wrap(~ method, ncol = 1)
+
+
+
+
+
+
+
+
+
+# FULL SIMULATIONS ----
 
 if (!file.exists(csv_files$inaccurate)) {
 
@@ -141,18 +229,11 @@ if (!file.exists(csv_files$inaccurate)) {
                            n_reps = 3:10,
                            b = c(0.2, 0.5, 1, 2),
                            obs_cv = 0.2 * c(0.5, 1, 2),
-                           # To compare to even temps (z0 = 0):
-                           z1 = c(0, 1),
-                           # These curves are inaccurate:
-                           curve_off = TRUE,
                            # Things that don't vary:
-                           temp_buffer = 6L,
-                           z0 = 0,
                            ctmin = 5,
                            ctmax = 40,
                            a = 1) |>
-        all_combo_fits(.seed = 2140098495) |>
-        select(-curve_off)
+        all_combo_fits(.seed = 2140098495)
     write_csv(off_fit_df, csv_files$inaccurate)
 
 } else {

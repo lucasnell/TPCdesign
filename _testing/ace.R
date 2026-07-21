@@ -1,6 +1,8 @@
 
-library(acebayes)
-library(lhs)
+suppressPackageStartupMessages({
+    library(acebayes)
+    library(lhs)
+})
 
 
 # utility_briere2D <- function(d, B) {
@@ -33,87 +35,87 @@ library(lhs)
 #
 #     mean(logdets)
 # }
-
-Rcpp::cppFunction(
-'double utility_briere2D_cpp(const arma::mat& d, SEXP B) {
-
-    // Because pace passes a list sometimes:
-    arma::mat theta;
-    if (TYPEOF(B) == VECSXP) {
-        Rcpp::List lB(B);
-        Rcpp::NumericMatrix mB(lB[0]);
-        theta = arma::mat(mB.begin(), mB.nrow(), mB.ncol(), false);
-    } else if (TYPEOF(B) == REALSXP) {
-        Rcpp::NumericMatrix mB(B);
-        theta = arma::mat(mB.begin(), mB.nrow(), mB.ncol(), false);
-        // const arma::mat theta(B);
-    } else stop("B must be list or numeric");
-
-    typedef arma::uword uint32;
-
-    const arma::vec temps(d.col(0));
-    const uint32 ntemps(temps.n_elem);
-
-    const uint32 ndraws = theta.n_rows;
-
-    double logdet_sum = 0;
-
-    double val, sign;
-    bool ok;
-    arma::mat G(ntemps, 3U, arma::fill::none);
-    arma::mat I(3U, 3U, arma::fill::none);
-
-    double warm_gap, warm_gap_b, cold_gap;
-
-    for (uint32 i = 0; i < ndraws; i++) {
-
-            const double& ctmin(theta.at(i, 0));
-            const double& ctmax(theta.at(i, 1));
-            const double& b(theta.at(i, 2));
-            const double& a(theta.at(i, 3));
-
-            for (uint32 j = 0; j < ntemps; j++) {
-                const double& t(temps.at(j));
-                if ((t > ctmin) & (t < ctmax)) {
-                    // inside [ctmin, ctmax] range
-                    warm_gap = ctmax - t;
-                    warm_gap_b = std::pow(warm_gap, b);
-                    cold_gap = t - ctmin;
-                    // dy / dctmin:
-                    G.at(j,0) = -a * t * warm_gap_b;
-                    // dy / dctmax:
-                    G.at(j,1) = a * t * cold_gap * b * std::pow(warm_gap, b - 1.0);
-                    // dy / db:
-                    G.at(j,2) = a * t * cold_gap * warm_gap_b * std::log(warm_gap);
-                } else {
-                    // NOT inside [ctmin, ctmax] range
-                    G.at(j,0) = 0.0;
-                    G.at(j,1) = 0.0;
-                    G.at(j,2) = 0.0;
-                }
-            }
-
-
-            I = G.t() * G + 1e-10 * arma::eye(arma::size(I));
-
-            // ----------------------------------------
-
-            ok = arma::log_det(val, sign, I);
-            logdet_sum += val;
-        }
-
-
-    double logdet_mean = logdet_sum / static_cast<double>(ndraws);
-
-    return logdet_mean;
-}
-',
-depends = "RcppArmadillo")
+#
+# Rcpp::cppFunction(
+# 'double utility_briere2D_cpp(const arma::mat& d, SEXP B) {
+#
+#     // Because pace passes a list sometimes:
+#     arma::mat theta;
+#     if (TYPEOF(B) == VECSXP) {
+#         Rcpp::List lB(B);
+#         Rcpp::NumericMatrix mB(lB[0]);
+#         theta = arma::mat(mB.begin(), mB.nrow(), mB.ncol(), false);
+#     } else if (TYPEOF(B) == REALSXP) {
+#         Rcpp::NumericMatrix mB(B);
+#         theta = arma::mat(mB.begin(), mB.nrow(), mB.ncol(), false);
+#         // const arma::mat theta(B);
+#     } else stop("B must be list or numeric");
+#
+#     typedef arma::uword uint32;
+#
+#     const arma::vec temps(d.col(0));
+#     const uint32 ntemps(temps.n_elem);
+#
+#     const uint32 ndraws = theta.n_rows;
+#
+#     double logdet_sum = 0;
+#
+#     double val, sign;
+#     bool ok;
+#     arma::mat G(ntemps, 3U, arma::fill::none);
+#     arma::mat I(3U, 3U, arma::fill::none);
+#
+#     double warm_gap, warm_gap_b, cold_gap;
+#
+#     for (uint32 i = 0; i < ndraws; i++) {
+#
+#             const double& ctmin(theta.at(i, 0));
+#             const double& ctmax(theta.at(i, 1));
+#             const double& b(theta.at(i, 2));
+#             const double& a(theta.at(i, 3));
+#
+#             for (uint32 j = 0; j < ntemps; j++) {
+#                 const double& t(temps.at(j));
+#                 if ((t > ctmin) & (t < ctmax)) {
+#                     // inside [ctmin, ctmax] range
+#                     warm_gap = ctmax - t;
+#                     warm_gap_b = std::pow(warm_gap, b);
+#                     cold_gap = t - ctmin;
+#                     // dy / dctmin:
+#                     G.at(j,0) = -a * t * warm_gap_b;
+#                     // dy / dctmax:
+#                     G.at(j,1) = a * t * cold_gap * b * std::pow(warm_gap, b - 1.0);
+#                     // dy / db:
+#                     G.at(j,2) = a * t * cold_gap * warm_gap_b * std::log(warm_gap);
+#                 } else {
+#                     // NOT inside [ctmin, ctmax] range
+#                     G.at(j,0) = 0.0;
+#                     G.at(j,1) = 0.0;
+#                     G.at(j,2) = 0.0;
+#                 }
+#             }
+#
+#
+#             I = G.t() * G + 1e-10 * arma::eye(arma::size(I));
+#
+#             // ----------------------------------------*
+#
+#             ok = arma::log_det(val, sign, I);
+#             logdet_sum += val;
+#         }
+#
+#
+#     double logdet_mean = logdet_sum / static_cast<double>(ndraws);
+#
+#     return logdet_mean;
+# }
+# ',
+# depends = "RcppArmadillo")
 
 
 
 # Fills in gaps to hedge against curve mismatch
-gap_filler <- function(n_fill, opt_temps, min_temp, max_temp) {
+gap_filler <- function(n_fill, opt_temps, min_temp, max_temp, digits) {
 
     if (n_fill <= 0) return(opt_temps)
 
@@ -135,20 +137,20 @@ gap_filler <- function(n_fill, opt_temps, min_temp, max_temp) {
     if (min_temp %in% opt_temps) final <- c(min_temp, final)
     if (max_temp %in% opt_temps) final <- c(max_temp, upper)
 
-    final <- sort(round(final, 2))
+    final <- sort(round(final, digits))
     return(final)
 }
 
 
 
-
-
 ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
+                             digits = 1L,
                              opt_temp_p = 0.7,
-                             n_draws = 500L, n_starts = 10L,
+                             n_draws = 100L, n_starts = 5L,
                              n_threads = 1L) {
 
-    # n_temps = 7L; ctmin = 5; ctmax = 45; a = 1; b = 0.2; n_draws = 500; n_starts = 10L
+    # n_temps = 7L; ctmin = 5; ctmax = 50; a = 1; b = 0.2
+    # digits = 1L; opt_temp_p = 0.7; n_draws = 500; n_starts = 10L; n_threads = 1L
 
     n_optimal <- as.integer(round(opt_temp_p * n_temps))
     n_fill <- n_temps - n_optimal  # insurance against shape mismatch
@@ -174,7 +176,7 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
         return(d)
     })
 
-    design_robust <- pace(utility = utility_briere2D_cpp,
+    design_robust <- pace(utility = TPCdesign:::utility_briere2D_cpp,
                           start.d = start_temp_list,
                           B = rep(list(theta = theta_draws), 2),
                           lower = min_temp - 5,
@@ -182,9 +184,9 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
                           deterministic = TRUE,
                           mc.cores = n_threads)
 
-    opt_temps <- sort(round(design_robust$d, 2))
+    opt_temps <- sort(round(design_robust$d, digits))
 
-    final_temps <- gap_filler(n_fill, opt_temps, min_temp, max_temp)
+    final_temps <- gap_filler(n_fill, opt_temps, min_temp, max_temp, digits)
 
     return(final_temps)
 
