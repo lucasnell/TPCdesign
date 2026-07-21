@@ -11,7 +11,7 @@ using namespace Rcpp;
 
 
 //[[Rcpp::export]]
-double utility_briere2D_cpp(const arma::mat& d, SEXP B) {
+double utility_briere2D(const arma::mat& d, SEXP B) {
 
     // Because pace passes a list sometimes:
     arma::mat theta;

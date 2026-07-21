@@ -1,7 +1,4 @@
 
-source("_testing/ace.R")
-
-
 
 
 
@@ -152,9 +149,7 @@ all_combo_fits <- function(input_df, .seed, .scale_tpc = FALSE) {
                              .scale_tpc = .scale_tpc,
                              future.seed = .seed,
                              future.globals = c("one_combo_fits",
-                                                "one_test_fit",
-                                                "ace_design_temps",
-                                                "gap_filler"),
+                                                "one_test_fit"),
                              future.packages = c("tidyverse",
                                                  "nls.multstart",
                                                  "TPCdesign",

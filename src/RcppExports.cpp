@@ -12,15 +12,15 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// utility_briere2D_cpp
-double utility_briere2D_cpp(const arma::mat& d, SEXP B);
-RcppExport SEXP _TPCdesign_utility_briere2D_cpp(SEXP dSEXP, SEXP BSEXP) {
+// utility_briere2D
+double utility_briere2D(const arma::mat& d, SEXP B);
+RcppExport SEXP _TPCdesign_utility_briere2D(SEXP dSEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::mat& >::type d(dSEXP);
     Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(utility_briere2D_cpp(d, B));
+    rcpp_result_gen = Rcpp::wrap(utility_briere2D(d, B));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -123,7 +123,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TPCdesign_utility_briere2D_cpp", (DL_FUNC) &_TPCdesign_utility_briere2D_cpp, 2},
+    {"_TPCdesign_utility_briere2D", (DL_FUNC) &_TPCdesign_utility_briere2D, 2},
     {"_TPCdesign_logit", (DL_FUNC) &_TPCdesign_logit, 1},
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
     {"_TPCdesign_trunc_rnorm", (DL_FUNC) &_TPCdesign_trunc_rnorm, 3},
