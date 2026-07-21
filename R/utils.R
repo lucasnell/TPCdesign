@@ -86,24 +86,6 @@ err_msg <- function(par, ...) {
 
 
 
-
-# Add elements to argument list
-add_args <- function(args0, extra_args, naughty_pars = c()) {
-    args <- args0
-    if (length(extra_args) > 0) {
-        if (is.null(names(extra_args)) || any(names(extra_args) == "")) {
-            stop("optim_args must only contain named elements")
-        }
-        if (length(naughty_pars) > 0 && any(naughty_pars %in% names(extra_args))) {
-            stop("Cannot pass these as additional parameters: ",
-                 paste(naught_pars, collapse = ", "))
-        }
-        for (n in names(extra_args)) args[[n]] <- extra_args[[n]]
-    }
-    return(args)
-}
-
-
 # Get number of decimal places in a number.
 # Note: this assumes we don't care about numbers smaller than 10 decimal places.
 # Vectored version of here: https://stackoverflow.com/a/5173906/5016095

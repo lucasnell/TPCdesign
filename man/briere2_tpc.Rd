@@ -4,20 +4,21 @@
 \alias{briere2_tpc}
 \title{Brière-2 thermal performance curve (TPC)}
 \usage{
-briere2_tpc(temp, ctmin, ctmax, a, b, scale)
+briere2_tpc(temp, ctmin, ctmax, a, b, scale = FALSE)
 }
 \arguments{
 \item{temp}{Numeric vector of temperatures}
 
-\item{ctmin}{Single numeric for parameter ctmin}
+\item{ctmin}{Single numeric for parameter \code{ctmin}.}
 
-\item{ctmax}{Single numeric for parameter ctmax}
+\item{ctmax}{Single numeric for parameter \code{ctmax}.}
 
-\item{a}{Single numeric for parameter a}
+\item{a}{Single numeric for parameter \code{a}.}
 
-\item{b}{Single numeric for parameter b}
+\item{b}{Single numeric for parameter \code{b}.}
 
-\item{scale}{Single logical for whether to scale to make max value 1.}
+\item{scale}{Single logical for whether to scale to make max value 1.
+Defaults to \code{FALSE}.}
 }
 \value{
 A numeric vector for measure of performance for each in \code{temp}

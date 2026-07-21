@@ -9,13 +9,13 @@ briere2_tpc_deriv(temp, ctmin, ctmax, a, b)
 \arguments{
 \item{temp}{Numeric vector of temperatures}
 
-\item{ctmin}{Single numeric for parameter ctmin}
+\item{ctmin}{Single numeric for parameter \code{ctmin}.}
 
-\item{ctmax}{Single numeric for parameter ctmax}
+\item{ctmax}{Single numeric for parameter \code{ctmax}.}
 
-\item{a}{Single numeric for parameter a}
+\item{a}{Single numeric for parameter \code{a}.}
 
-\item{b}{Single numeric for parameter b}
+\item{b}{Single numeric for parameter \code{b}.}
 }
 \value{
 A numeric vector for first derivative of measures of

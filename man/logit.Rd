@@ -2,9 +2,17 @@
 % Please edit documentation in R/RcppExports.R
 \name{logit}
 \alias{logit}
+\alias{inv_logit}
 \title{Logit and inverse logit functions.}
 \usage{
 logit(p)
+
+inv_logit(a)
+}
+\arguments{
+\item{p}{Numeric vector of proportion(s)}
+
+\item{a}{Numeric vector of values that aren't necessarily proportions}
 }
 \description{
 Logit and inverse logit functions.

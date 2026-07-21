@@ -7,14 +7,16 @@ utility_briere2D_cpp <- function(d, B) {
 
 #' Logit and inverse logit functions.
 #'
-#'
+#'@param p Numeric vector of proportion(s)
 #' @export
 #'
 logit <- function(p) {
     .Call(`_TPCdesign_logit`, p)
 }
 
-#' @describeIn logit
+#' @rdname logit
+#'
+#'@param a Numeric vector of values that aren't necessarily proportions
 #'
 #' @export
 #'
@@ -39,17 +41,18 @@ trunc_rnorm_range <- function(n, mu, sigma) {
 #' gives a greater performance value than `10`.
 #'
 #' @param temp Numeric vector of temperatures
-#' @param ctmin Single numeric for parameter ctmin
-#' @param ctmax Single numeric for parameter ctmax
-#' @param a Single numeric for parameter a
-#' @param b Single numeric for parameter b
+#' @param ctmin Single numeric for parameter `ctmin`.
+#' @param ctmax Single numeric for parameter `ctmax`.
+#' @param a Single numeric for parameter `a`.
+#' @param b Single numeric for parameter `b`.
 #' @param scale Single logical for whether to scale to make max value 1.
+#'     Defaults to `FALSE`.
 #'
 #' @returns A numeric vector for measure of performance for each in `temp`
 #'
 #' @export
 #'
-briere2_tpc <- function(temp, ctmin, ctmax, a, b, scale) {
+briere2_tpc <- function(temp, ctmin, ctmax, a, b, scale = FALSE) {
     .Call(`_TPCdesign_briere2_tpc`, temp, ctmin, ctmax, a, b, scale)
 }
 
@@ -67,59 +70,20 @@ briere2_tpc_deriv <- function(temp, ctmin, ctmax, a, b) {
     .Call(`_TPCdesign_briere2_tpc_deriv`, temp, ctmin, ctmax, a, b)
 }
 
-#' Make vector of temperatures for input of parameters
-#'
-#' @param params Numeric vector of parameters.
-#'     The length of this vector must be equal to the number of desired
-#'     temperatures plus 1. A vector of length `<2` returns an error.
-#'     The last item in this vector must be the logit-transformed proportion
-#'     the last temperature is from the midpoint
-#'     (i.e., `mean(c(temp_min, temp_max))`)
-#'     to the maximum possible temperature (i.e., `temp_max`).
-#'     The first item is the logit-transformed weight affecting
-#'     the difference between `temp_min` and the first sampled temperature.
-#'     The remaining items are the logit-transformed weights affecting
-#'     the distance between the remaining sampled temperatures and
-#'     the previous ones.
-#' @inheritParams design_temps
-#'
-#' @returns A numeric vector for the temperatures to sample.
-#'
-#' @export
-#'
-#'
-make_temps <- function(params, temp_min, temp_max) {
-    .Call(`_TPCdesign_make_temps`, params, temp_min, temp_max)
-}
-
-#' Objective function with RMSE returned
-#'
-#' @param params Numeric vector of length 4 containing (in order)
-#'     untransformed `ctmin`, untransformed `ctmax`, log-transformed `a`,
-#'     and log-transformed `b`.
-#' @param y Numeric vector giving the observed performance values for each
-#'     temperature. It's recommended to scale this vector to have a max value
-#'     of 1 by dividing by its max value.
-#'     Must be the same length as `temp`.
-#' @param temp Numeric vector giving the observed temperatures for each
-#'     performance value. Must be the same length as `y`.
-#' @param scale_tpc Single logical for whether to scale TPC to make max value 1.
-#'
-#' @returns A single numeric giving the RMSE between observed performance
-#'     values and those predicted based on the input parameters.
-#'
-#' @noRd
-#'
-#'
-rmse_objective <- function(params, y, temp, scale_tpc) {
-    .Call(`_TPCdesign_rmse_objective`, params, y, temp, scale_tpc)
-}
-
 #' Simulate data with gamma distributed error (or normal approximation)
 #'
 #' @param temp Numeric vector giving the observed temperatures for each
 #'     performance value.
-#' @inheritParams design_temps
+#' @param n_reps Single integer for the number of experimental reps per
+#'     temperature.
+#' @param obs_cv Single numeric for the observation error coefficient of variation.
+#'     Must be >= 0.
+#'     Observation error is simulated using a gamma distribution, except for
+#'     when performance values would fall below zero, in which case it uses
+#'     a truncated normal approximation.
+#' @inheritParams briere2_tpc
+#' @param scale_tpc Single logical for whether to scale to make max value 1.
+#'     Defaults to `FALSE`.
 #'
 #' @export
 #'
@@ -127,7 +91,7 @@ rmse_objective <- function(params, y, temp, scale_tpc) {
 #'     performance values (column `"y"`) with gamma (or normal approximation)
 #'     error.
 #'
-sim_gamma_data <- function(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = TRUE) {
+sim_gamma_data <- function(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE) {
     .Call(`_TPCdesign_sim_gamma_data`, temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc)
 }
 

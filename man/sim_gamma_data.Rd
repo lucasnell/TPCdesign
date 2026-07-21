@@ -4,19 +4,20 @@
 \alias{sim_gamma_data}
 \title{Simulate data with gamma distributed error (or normal approximation)}
 \usage{
-sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = TRUE)
+sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE)
 }
 \arguments{
 \item{temp}{Numeric vector giving the observed temperatures for each
 performance value.}
 
-\item{n_reps}{Single integer for the number of experimental reps per temperature.}
+\item{n_reps}{Single integer for the number of experimental reps per
+temperature.}
 
 \item{obs_cv}{Single numeric for the observation error coefficient of variation.
 Must be >= 0.
 Observation error is simulated using a gamma distribution, except for
-when performance values are below zero, in which case it uses
-a normal approximation.}
+when performance values would fall below zero, in which case it uses
+a truncated normal approximation.}
 
 \item{ctmin}{Single numeric for parameter \code{ctmin}.}
 
@@ -26,9 +27,8 @@ a normal approximation.}
 
 \item{b}{Single numeric for parameter \code{b}.}
 
-\item{scale_tpc}{Single logical for whether to scale performance values
-to make them have a max value of 1.
-Defaults to \code{TRUE}.}
+\item{scale_tpc}{Single logical for whether to scale to make max value 1.
+Defaults to \code{FALSE}.}
 }
 \value{
 A dataframe of temperatures (column \code{"temp"}) and

@@ -103,33 +103,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// make_temps
-NumericVector make_temps(NumericVector params, const double& temp_min, const double& temp_max);
-RcppExport SEXP _TPCdesign_make_temps(SEXP paramsSEXP, SEXP temp_minSEXP, SEXP temp_maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type temp_min(temp_minSEXP);
-    Rcpp::traits::input_parameter< const double& >::type temp_max(temp_maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_temps(params, temp_min, temp_max));
-    return rcpp_result_gen;
-END_RCPP
-}
-// rmse_objective
-double rmse_objective(const arma::vec& params, const arma::vec& y, const arma::vec& temp, const bool& scale_tpc);
-RcppExport SEXP _TPCdesign_rmse_objective(SEXP paramsSEXP, SEXP ySEXP, SEXP tempSEXP, SEXP scale_tpcSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type params(paramsSEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
-    Rcpp::traits::input_parameter< const arma::vec& >::type temp(tempSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type scale_tpc(scale_tpcSEXP);
-    rcpp_result_gen = Rcpp::wrap(rmse_objective(params, y, temp, scale_tpc));
-    return rcpp_result_gen;
-END_RCPP
-}
 // sim_gamma_data
 DataFrame sim_gamma_data(const arma::vec& temp, const int& n_reps, const double& obs_cv, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale_tpc);
 RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scale_tpcSEXP) {
@@ -157,8 +130,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_trunc_rnorm_range", (DL_FUNC) &_TPCdesign_trunc_rnorm_range, 3},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
     {"_TPCdesign_briere2_tpc_deriv", (DL_FUNC) &_TPCdesign_briere2_tpc_deriv, 5},
-    {"_TPCdesign_make_temps", (DL_FUNC) &_TPCdesign_make_temps, 3},
-    {"_TPCdesign_rmse_objective", (DL_FUNC) &_TPCdesign_rmse_objective, 4},
     {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 8},
     {NULL, NULL, 0}
 };

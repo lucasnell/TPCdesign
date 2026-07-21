@@ -9,7 +9,7 @@ using namespace Rcpp;
 
 //' Logit and inverse logit functions.
 //'
-//'
+//'@param p Numeric vector of proportion(s)
 //' @export
 //'
 //[[Rcpp::export]]
@@ -20,7 +20,9 @@ NumericVector logit(NumericVector p) {
     }
     return out;
 }
-//' @describeIn logit
+//' @rdname logit
+//'
+//'@param a Numeric vector of values that aren't necessarily proportions
 //'
 //' @export
 //'
@@ -94,11 +96,12 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
 //' gives a greater performance value than `10`.
 //'
 //' @param temp Numeric vector of temperatures
-//' @param ctmin Single numeric for parameter ctmin
-//' @param ctmax Single numeric for parameter ctmax
-//' @param a Single numeric for parameter a
-//' @param b Single numeric for parameter b
+//' @param ctmin Single numeric for parameter `ctmin`.
+//' @param ctmax Single numeric for parameter `ctmax`.
+//' @param a Single numeric for parameter `a`.
+//' @param b Single numeric for parameter `b`.
 //' @param scale Single logical for whether to scale to make max value 1.
+//'     Defaults to `FALSE`.
 //'
 //' @returns A numeric vector for measure of performance for each in `temp`
 //'
@@ -110,7 +113,7 @@ arma::vec briere2_tpc(const arma::vec& temp,
                           const double& ctmax,
                           const double& a,
                           const double& b,
-                          const bool& scale) {
+                          const bool& scale = false) {
     arma::vec out = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale);
     return out;
 }
@@ -169,123 +172,6 @@ arma::vec briere2_tpc_deriv(const arma::vec& temp,
 
 
 
-/*
- ===============================================================================*
- ===============================================================================*
- Make vector of temperatures for input of parameters
- ===============================================================================*
- ===============================================================================*
- */
-
-//' Make vector of temperatures for input of parameters
-//'
-//' @param params Numeric vector of parameters.
-//'     The length of this vector must be equal to the number of desired
-//'     temperatures plus 1. A vector of length `<2` returns an error.
-//'     The last item in this vector must be the logit-transformed proportion
-//'     the last temperature is from the midpoint
-//'     (i.e., `mean(c(temp_min, temp_max))`)
-//'     to the maximum possible temperature (i.e., `temp_max`).
-//'     The first item is the logit-transformed weight affecting
-//'     the difference between `temp_min` and the first sampled temperature.
-//'     The remaining items are the logit-transformed weights affecting
-//'     the distance between the remaining sampled temperatures and
-//'     the previous ones.
-//' @inheritParams design_temps
-//'
-//' @returns A numeric vector for the temperatures to sample.
-//'
-//' @export
-//'
-//'
-//[[Rcpp::export]]
-NumericVector make_temps(NumericVector params,
-                         const double& temp_min,
-                         const double& temp_max) {
-
-    if (params.size() < 2U) stop("params must be of length 2 or longer");
-
-    uint32 n_temps = params.size() - 1;
-
-    double temp_diff = temp_max - temp_min;
-    double temp_end = 0.5 * (1 + inv_logit_cpp(params[n_temps])) * temp_diff + temp_min;
-    temp_diff = temp_end - temp_min;
-
-    NumericVector cs_probs(n_temps);
-    for (uint32 i = 0; i < n_temps; i++) {
-        cs_probs[i] = inv_logit_cpp(params[i]);
-        if (i > 0) cs_probs[i] += cs_probs[i-1U];
-    }
-
-    NumericVector temp(n_temps);
-    double denom = (cs_probs[n_temps-1U] > 0) ? cs_probs[n_temps-1U] : 1;
-    for (uint32 i = 0; i < n_temps; i++) {
-        temp[i] = (cs_probs[i] / denom) * temp_diff + temp_min;
-    }
-
-    return temp;
-
-}
-
-
-
-
-/*
- ===============================================================================*
- ===============================================================================*
- Objective function
- ===============================================================================*
- ===============================================================================*
- */
-
-
-//' Objective function with RMSE returned
-//'
-//' @param params Numeric vector of length 4 containing (in order)
-//'     untransformed `ctmin`, untransformed `ctmax`, log-transformed `a`,
-//'     and log-transformed `b`.
-//' @param y Numeric vector giving the observed performance values for each
-//'     temperature. It's recommended to scale this vector to have a max value
-//'     of 1 by dividing by its max value.
-//'     Must be the same length as `temp`.
-//' @param temp Numeric vector giving the observed temperatures for each
-//'     performance value. Must be the same length as `y`.
-//' @param scale_tpc Single logical for whether to scale TPC to make max value 1.
-//'
-//' @returns A single numeric giving the RMSE between observed performance
-//'     values and those predicted based on the input parameters.
-//'
-//' @noRd
-//'
-//'
-//[[Rcpp::export]]
-double rmse_objective(const arma::vec& params,
-                      const arma::vec& y,
-                      const arma::vec& temp,
-                      const bool& scale_tpc) {
-
-    if (params.n_elem != 4) stop("params must be length 4");
-    if (y.n_elem != temp.n_elem) stop("y must be same length as temp");
-
-    double ctmin = params[0];
-    double ctmax = params[1];
-    double a = std::exp(params[2]);
-    double b = std::exp(params[3]);
-
-    arma::vec y_pred = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale_tpc);
-
-    double out = 0;
-    for (uint32 i = 0; i < y.n_elem; i++) {
-        out += ((y.at(i) - y_pred.at(i)) * (y.at(i) - y_pred.at(i)));
-    }
-    out /= static_cast<double>(y.n_elem);
-    out = std::sqrt(out);
-    if (Rcpp::traits::is_infinite<REALSXP>(out) ||
-        NumericVector::is_na(out)) out = 1e10;
-
-    return out;
-}
-
 
 
 
@@ -303,7 +189,16 @@ double rmse_objective(const arma::vec& params,
 //'
 //' @param temp Numeric vector giving the observed temperatures for each
 //'     performance value.
-//' @inheritParams design_temps
+//' @param n_reps Single integer for the number of experimental reps per
+//'     temperature.
+//' @param obs_cv Single numeric for the observation error coefficient of variation.
+//'     Must be >= 0.
+//'     Observation error is simulated using a gamma distribution, except for
+//'     when performance values would fall below zero, in which case it uses
+//'     a truncated normal approximation.
+//' @inheritParams briere2_tpc
+//' @param scale_tpc Single logical for whether to scale to make max value 1.
+//'     Defaults to `FALSE`.
 //'
 //' @export
 //'
@@ -319,7 +214,7 @@ DataFrame sim_gamma_data(const arma::vec& temp,
                          const double& ctmax,
                          const double& a,
                          const double& b,
-                         const bool& scale_tpc = true) {
+                         const bool& scale_tpc = false) {
 
     if (n_reps < 1) stop("n_reps must be >= 1");
     if (obs_cv <= 0) stop("obs_cv must be > 0");
