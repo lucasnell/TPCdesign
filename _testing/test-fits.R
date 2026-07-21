@@ -73,7 +73,18 @@ deriv_temp_maker <- function(q, ctmin, ctmax, a, b, temp_buffer = 5) {
 
 deriv_temp_maker(q = 0.2, ctmin, ctmax, a, b, temp_buffer = 5)
 deriv_temp_maker(q = 0.1, ctmin, ctmax, a, b, temp_buffer = 5)
-deriv_temp_maker(q = 0, ctmin, ctmax, a, b, temp_buffer = 5)
+bench::mark(deriv = deriv_temp_maker(q = 0, ctmin, ctmax, a, b, temp_buffer = 5),
+            optim = design_temps(n_temps = n_temps,
+                                 n_reps = n_reps,
+                                 obs_cv = obs_cv,
+                                 temp_min = ctmin - 5,
+                                 temp_max = ctmax + 5,
+                                 ctmin = ctmin,
+                                 ctmax = ctmax,
+                                 a = a,
+                                 b = b,
+                                 scale_tpc = TRUE),
+            check = FALSE, memory = FALSE)
 
 
 # -----------------------*
