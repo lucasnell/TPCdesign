@@ -49,5 +49,7 @@ po/*~
 rsconnect/
 .Rproj.user
 
+.Rprofile
+
 # plot files
 *.pdf

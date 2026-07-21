@@ -48,7 +48,7 @@ inline arma::vec briere2_tpc_cpp(const arma::vec& temp,
     arma::vec out(temp.n_elem, arma::fill::none);
     double out_max = 0;
     for (uint32 i = 0; i < temp.n_elem; i++) {
-        out.at(i) = a * temp.at(i) * (temp.at(i) - ctmin) *
+        out.at(i) = a * temp.at(i) * std::max(temp.at(i) - ctmin, 0.0) *
             std::pow(std::max(ctmax - temp.at(i), 0.0), b);
         if (out.at(i) > out_max) out_max = out.at(i);
     }
