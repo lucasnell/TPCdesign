@@ -4,16 +4,16 @@
 
 
 # Fills in gaps to hedge against curve mismatch
-gap_filler <- function(n_fill, opt_temps, min_temp, max_temp, digits) {
+gap_filler <- function(n_filler, opt_temps, min_temp, max_temp, digits) {
 
-    if (n_fill <= 0) return(opt_temps)
+    if (n_filler <= 0) return(opt_temps)
 
     points <- sort(opt_temps)
 
     # Include the domain boundaries as candidate gap edges
     points <- c(min_temp, points, max_temp)
 
-    for (i in 1:n_fill) {
+    for (i in 1:n_filler) {
         gaps <- diff(points)
         largest_gap_idx <- which.max(gaps)
         new_point <- mean(points[largest_gap_idx:(largest_gap_idx + 1)])
@@ -57,16 +57,16 @@ gap_filler <- function(n_fill, opt_temps, min_temp, max_temp, digits) {
 #'     maximum `log(b) + logb_err`. Defaults to `0.26`.
 #' @param min_sep Single numeric specifying the minimum separation between
 #'     optimized temperatures. The step where equally-spaced temperatures are
-#'     added (only happens when `opt_temp_p < 1`) is not affected by this
+#'     added (only happens when `n_filler >= 1`) is not affected by this
 #'     argument, and unless the number of points is very high relative
 #'     to the difference in maximum (`ctmax + ctmax_err`) and
 #'     minimum (`ctmin + ctmin_err`) temperatures surveyed, having a minimum
 #'     separation shouldn't change this step anyway. Defaults to `0.5`.
-#' @param opt_temp_p Single numeric specifying the proportion of time points
-#'     that are optimized versus equally spaced.
+#' @param n_filler Single integer specifying the number of temperatures
+#'     that are equally spaced versus optimized.
 #'     Equally spacing points can be a good bet hedging strategy if you're
 #'     quite unsure of the TPC parameters (`ctmin`, `ctmax`, `a`, `b`)
-#'     you're using. Defaults to `0.7`.
+#'     you're using. Defaults to `0`.
 #' @param n_draws Single integer specifying the number of prior draws to
 #'     use. Increase if your certainty is low (i.e., `*_err` parameters are
 #'     high). Defaults to `100L`.
@@ -89,7 +89,7 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
                              ctmax_err = 1.50,
                              logb_err = 0.26,
                              min_sep = 0.5,
-                             opt_temp_p = 0.7,
+                             n_filler = 0,
                              n_draws = 100L,
                              n_starts = 5L,
                              digits = 2L,
@@ -106,15 +106,14 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
     single_number(ctmax_err, "ctmax_err", .min = 0)
     single_number(logb_err, "logb_err", .min = 0)
     single_number(min_sep, "min_sep", .min = 0)
-    single_number(opt_temp_p, "opt_temp_p", .min = 0, .max = 1)
+    single_integer(n_filler, "n_filler", .min = 0L, .max = n_temps)
     single_integer(n_draws, "n_draws", .min = 1L)
     single_integer(n_starts, "n_starts", .min = 1L)
     single_integer(digits, "digits", .min = 0L)
     single_integer(n_threads, "n_threads", .min = 1L)
 
 
-    n_optimal <- as.integer(round(opt_temp_p * n_temps))
-    n_fill <- n_temps - n_optimal  # insurance against shape mismatch
+    n_optimal <- n_temps - n_filler
 
     # genus-level relatives was 2.50°C for Tmin, 1.50°C for Tmax,
     # and 0.26 for log(b)
@@ -165,7 +164,7 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
 
     opt_temps <- sort(round(design_robust$d, digits))
 
-    final_temps <- gap_filler(n_fill, opt_temps, min_temp, max_temp, digits)
+    final_temps <- gap_filler(n_filler, opt_temps, min_temp, max_temp, digits)
 
     return(final_temps)
 

@@ -14,7 +14,7 @@ ace_design_temps(
   ctmax_err = 1.5,
   logb_err = 0.26,
   min_sep = 0.5,
-  opt_temp_p = 0.7,
+  n_filler = 0,
   n_draws = 100L,
   n_starts = 5L,
   digits = 2L,
@@ -50,17 +50,17 @@ maximum \code{log(b) + logb_err}. Defaults to \code{0.26}.}
 
 \item{min_sep}{Single numeric specifying the minimum separation between
 optimized temperatures. The step where equally-spaced temperatures are
-added (only happens when \code{opt_temp_p < 1}) is not affected by this
+added (only happens when \code{n_filler >= 1}) is not affected by this
 argument, and unless the number of points is very high relative
 to the difference in maximum (\code{ctmax + ctmax_err}) and
 minimum (\code{ctmin + ctmin_err}) temperatures surveyed, having a minimum
 separation shouldn't change this step anyway. Defaults to \code{0.5}.}
 
-\item{opt_temp_p}{Single numeric specifying the proportion of time points
-that are optimized versus equally spaced.
+\item{n_filler}{Single integer specifying the number of temperatures
+that are equally spaced versus optimized.
 Equally spacing points can be a good bet hedging strategy if you're
 quite unsure of the TPC parameters (\code{ctmin}, \code{ctmax}, \code{a}, \code{b})
-you're using. Defaults to \code{0.7}.}
+you're using. Defaults to \code{0}.}
 
 \item{n_draws}{Single integer specifying the number of prior draws to
 use. Increase if your certainty is low (i.e., \verb{*_err} parameters are
