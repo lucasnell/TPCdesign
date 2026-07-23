@@ -42,6 +42,7 @@ export MAX_ARRAY_INDEX=40
 # To test:
 # cd /home2/lan68/tpc/tuning
 # srun -N 1 -n 1 -c 6 --mem=20G --time=2:00:00 --job-name="ace-tune" --pty bash -i
+# export MAX_ARRAY_INDEX=40
 # export OMP_NUM_THREADS=1
 # R --vanilla
 #
@@ -88,15 +89,15 @@ lhs_df <- maximinLHS(n = 1000, k = 9) |>
     set_names(c("n_temps", "b", "ctmin_eps", "ctmax_eps",
                 "logb_eps", "min_sep", "n_filler", "n_draws", "n_starts")) |>
     as_tibble() |>
-    mutate(n_temps = n_temps |> qinteger(5, 10) |> as.integer(),
-           b = c(0.2, 0.5, 1)[qinteger(b, 1, 3)],
-           ctmin_eps = 2 * 2.5 * (2 * ctmin_eps - 1), # [-5, +5]
-           ctmax_eps = 2 * 1.5 * (2 * ctmax_eps - 1), # [-3, +3]
-           logb_eps = 2 * 0.26 * (2 * logb_eps - 1), # [-0.52, +0.52]
+    mutate(n_temps = qinteger(n_temps, 5, 10) |> as.integer(),
+           b = c(0.2, 0.5, 1, 2)[qinteger(b, 1, 4)],
+           ctmin_eps = (2.5 * -2:2)[qinteger(ctmin_eps, 1, 5)], # [-5, +5]
+           ctmax_eps = (1.5 * -2:2)[qinteger(ctmax_eps, 1, 5)], # [-3, +3]
+           logb_eps = (0.26 * -2:2)[qinteger(logb_eps, 1, 5)], # [-0.52, +0.52]
            min_sep = min_sep * (2 - 0.5) + 0.5,
-           n_filler = n_filler |> qinteger(0, 3) |> as.integer(),
-           n_draws = n_draws |> qinteger(50, 500) |> as.integer(),
-           n_starts = n_starts |> qinteger(5, 10) |> as.integer()) |>
+           n_filler = qinteger(n_filler, 0, 3) |> as.integer(),
+           n_draws = qinteger(n_draws, 50, 500) |> as.integer(),
+           n_starts = qinteger(n_starts, 5, 10) |> as.integer()) |>
     # Variables that don't change:
     mutate(n_reps = 6L,
            obs_cv = 0.2,

@@ -30,6 +30,7 @@ one_test_fit <- function(i, temps, n_reps, obs_cv, ctmin, ctmax, a, b) {
         lhstype = "improved",
         iter        = 500)
 
+
     if (is.null(fit)) {
         fitted <- tibble(ctmin = NA_real_, ctmax = NA_real_,
                          a = NA_real_, b = NA_real_, Topt = NA_real_,
