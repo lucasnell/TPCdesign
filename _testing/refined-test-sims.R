@@ -146,8 +146,8 @@ off_fit_small_df |>
 # # A tibble: 2 × 2
 #   method  rmse
 #   <chr>  <dbl>
-# 1 design  262.
-# 2 even    432.
+# 1 design  242.
+# 2 even    476.
 
 
 set.seed(1977579122)
@@ -190,8 +190,10 @@ curve(briere2_tpc(x, 4.90, 49.7, 0.872, 2.04, FALSE), add = TRUE, col = "red")
 curve(briere2_tpc(x, 4.3, 49.0, 1.65, 1.84, FALSE), add = TRUE, col = "red", lty = 2)
 
 
+temps <- ace_design_temps(15L, 5, 50, 1, 2)
 
-
+curve(briere2_tpc(x, 5, 50, 1, 2, FALSE), 0, 55, ylab = NA)
+abline(v = temps, lty = 2, col = "red")
 
 
 y = "ctmax"
