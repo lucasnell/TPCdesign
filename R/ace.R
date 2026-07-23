@@ -24,7 +24,7 @@ gap_filler <- function(n_filler, opt_temps, min_temp, max_temp, digits) {
     final <- setdiff(points, c(min_temp, max_temp))
     # unless lower/upper were themselves chosen as optimal points, add them back
     if (min_temp %in% opt_temps) final <- c(min_temp, final)
-    if (max_temp %in% opt_temps) final <- c(max_temp, upper)
+    if (max_temp %in% opt_temps) final <- c(final, max_temp)
 
     final <- sort(round(final, digits))
     return(final)
