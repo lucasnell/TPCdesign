@@ -425,18 +425,19 @@ if (!file.exists("_testing/rmse-test.rds")) {
             obs <- sim_gamma_data(temps, n_reps = tru$n_reps, obs_cv = tru$obs_cv,
                                   ctmin = tru$ctmin, ctmax = tru$ctmax, a = tru$a,
                                   b = tru$b, scale_tpc = FALSE)
+            starts_lo <- c(a = log(1e-6),  ctmin = -5,  ctmax = 30, b = log(0.01))
+            starts_up <- c(a = log(2),  ctmin = 15, ctmax = 50, b = log(3))
             fit <- nls_multstart(
-                formula     = y ~ a * temp * (temp - ctmin) *
+                formula     = y ~ exp(a) * temp * pmax(temp - ctmin, 0) *
                     pmax(ctmax - temp, 0)^exp(b),
                 data        = obs,
-                start_lower = c(a = 0,  ctmin = 0,  ctmax = 30, b = log(0.01)),
-                start_upper = c(a = 2,  ctmin = 15, ctmax = 50, b = log(3)),
-                iter        = 50,
+                start_lower = starts_lo,
+                start_upper = starts_up,
                 supp_errors = "Y",
                 control = list(maxfev = 5e3, maxiter = 1e3),
-                lhstype = "improved")
+                iter        = 500)
             fitted <- as.list(coef(fit))[c("ctmin", "ctmax", "a", "b")]
-            fitted[["b"]] <- exp(fitted[["b"]])
+            for (x in c("a", "b")) fitted[[x]] <- exp(fitted[[x]])
             obs_y <- briere2_tpc(test_temps, fitted[["ctmin"]], fitted[["ctmax"]],
                                  fitted[["a"]], fitted[["b"]], FALSE)
             # RMSE
@@ -555,18 +556,18 @@ temps <- c(seq(tru$ctmin, topt, length.out = tru$n_temps - (tru$n_temps %/% 2L) 
 obs <- sim_gamma_data(temps, tru$n_reps, tru$obs_cv, tru$ctmin, tru$ctmax,
                       tru$a, tru$b, scale_tpc = FALSE)
 fit <- nls_multstart(
-    formula     = y ~ a * temp * (temp - ctmin) *
+    formula     = y ~ exp(a) * temp * (temp - ctmin) *
         pmax(ctmax - temp, 0)^exp(b),
     data        = obs,
-    start_lower = c(a = 0,  ctmin = 0,  ctmax = 30, b = log(0.01)),
-    start_upper = c(a = 2,  ctmin = 15, ctmax = 50, b = log(3)),
+    start_lower = c(a = log(1e-6),  ctmin = -5,  ctmax = 30, b = log(0.01)),
+    start_upper = c(a = log(2),  ctmin = 15, ctmax = 50, b = log(3)),
     iter        = 50,
     supp_errors = "Y",
     control = list(maxfev = 5e3, maxiter = 1e3),
     lhstype = "improved")
 fit
 fitted <- as.list(coef(fit))[c("ctmin", "ctmax", "a", "b")]
-fitted[["b"]] <- exp(fitted[["b"]])
+for (x in c("a", "b")) fitted[[x]] <- exp(fitted[[x]])
 # RMSE
 obs_y <- briere2_tpc(test_temps, fitted[["ctmin"]], fitted[["ctmax"]],
                      fitted[["a"]], fitted[["b"]], FALSE)

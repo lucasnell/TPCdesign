@@ -13,23 +13,18 @@ one_test_fit <- function(i, temps, n_reps, obs_cv, ctmin, ctmax, a, b) {
 
     obs <- sim_gamma_data(temps, n_reps, obs_cv, ctmin, ctmax, a, b)
 
-    starts_lo <- c(a = 0,  ctmin = 0,  ctmax = 30, b = 0.01)
-    starts_up <- c(a = 2,  ctmin = 15, ctmax = 50, b = 3)
-
-    lims <- list(lo = c(ctmin = 0, ctmax = 5, a = 0, b = 0),
-                 up = c(ctmin = 40, ctmax = 400, a = 10, b = 30))
+    starts_lo <- c(a = log(1e-6),  ctmin = -5,  ctmax = 30, b = log(0.01))
+    starts_up <- c(a = log(2),  ctmin = 15, ctmax = 50, b = log(3))
 
     fit <- nls_multstart(
-        formula = y ~ briere2_tpc(temp, ctmin, ctmax, a, b),
+        formula     = y ~ exp(a) * temp * pmax(temp - ctmin, 0) *
+            pmax(ctmax - temp, 0)^exp(b),
         data        = obs,
         start_lower = starts_lo,
         start_upper = starts_up,
-        lower = lims$lo, upper = lims$up,
         supp_errors = "Y",
         control = list(maxfev = 5e3, maxiter = 1e3),
-        lhstype = "improved",
         iter        = 500)
-
 
     if (is.null(fit)) {
         fitted <- tibble(ctmin = NA_real_, ctmax = NA_real_,
@@ -37,6 +32,7 @@ one_test_fit <- function(i, temps, n_reps, obs_cv, ctmin, ctmax, a, b) {
                          converged = FALSE, rmse = NA_real_)
     } else {
         fitted <- as_tibble(as.list(coef(fit))[c("ctmin", "ctmax", "a", "b")])
+        for (x in c("a", "b")) fitted[[x]] <- exp(fitted[[x]])
         fitted[["Topt"]] <- briere2_tpc_Topt(fitted[["ctmin"]], fitted[["ctmax"]],
                                              fitted[["b"]])
         fitted[["converged"]] <- fit$convInfo$isConv
