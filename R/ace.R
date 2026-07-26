@@ -61,17 +61,17 @@ gap_filler <- function(n_filler, opt_temps, min_temp, max_temp, digits) {
 #'     argument, and unless the number of points is very high relative
 #'     to the difference in maximum (`ctmax + ctmax_err`) and
 #'     minimum (`ctmin + ctmin_err`) temperatures surveyed, having a minimum
-#'     separation shouldn't change this step anyway. Defaults to `0.5`.
+#'     separation shouldn't change this step anyway. Defaults to `1`.
 #' @param n_filler Single integer specifying the number of temperatures
 #'     that are equally spaced versus optimized.
 #'     Equally spacing points can be a good bet hedging strategy if you're
 #'     quite unsure of the TPC parameters (`ctmin`, `ctmax`, `a`, `b`)
-#'     you're using. Defaults to `0`.
+#'     you're using. Defaults to `1L`.
 #' @param n_draws Single integer specifying the number of prior draws to
 #'     use. Increase if your certainty is low (i.e., `*_err` parameters are
-#'     high). Defaults to `100L`.
+#'     high). Defaults to `250L`.
 #' @param n_starts Single integer specifying the number of starts
-#'     Defaults to `5L`.
+#'     Defaults to `7L`.
 #' @param digits Single integer specifying the digits to round temperatures to.
 #'     Defaults to `2L`.
 #' @param n_threads Single integer for the number of threads to use.
@@ -88,10 +88,10 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
                              ctmin_err = 2.50,
                              ctmax_err = 1.50,
                              logb_err = 0.26,
-                             min_sep = 0.5,
-                             n_filler = 0,
-                             n_draws = 100L,
-                             n_starts = 5L,
+                             min_sep = 1,
+                             n_filler = 1L,
+                             n_draws = 250L,
+                             n_starts = 7L,
                              digits = 2L,
                              n_threads = 1L) {
 
