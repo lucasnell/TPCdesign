@@ -125,7 +125,7 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
                          a = rep(a, n_draws))
 
 
-    if ((n_optimal - 1L) * min_sep > (ctmin - ctmax)) {
+    if ((n_optimal - 1L) * min_sep > (ctmax - ctmin)) {
         stop("min_sep is too large for given ctmin and ctmax temperatures and the ",
              "number of desired optimized temps")
     }
