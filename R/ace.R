@@ -125,19 +125,25 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
                          a = rep(a, n_draws))
 
 
-    min_temp <- min(prior_ctmin)
-    max_temp <- max(prior_ctmax)
-
-    if ((n_optimal - 1L) * min_sep > (max_temp - min_temp)) {
-        stop("min_sep is too large for given min and max temperatures and the ",
+    if ((n_optimal - 1L) * min_sep > (ctmin - ctmax)) {
+        stop("min_sep is too large for given ctmin and ctmax temperatures and the ",
              "number of desired optimized temps")
     }
 
     start_temp_list <- lapply(1:n_starts, function(i) {
-        d <- lhs::randomLHS(n = n_optimal, k = 1) * (max_temp - min_temp) + min_temp
+        # We want to be more conservative with starting values (compared to
+        # min_temp and max_temp below)
+        start_min <- ctmin + min_sep
+        start_max <- ctmax - min_sep
+        d <- lhs::randomLHS(n = n_optimal, k = 1) * (start_max - start_min) +
+            start_min
+        d <- d[order(d),,drop=FALSE]
         colnames(d) <- "temp"
         return(d)
     })
+
+    min_temp <- min(prior_ctmin)
+    max_temp <- max(prior_ctmax)
 
     # Limit temps to have a minimum separation:
     limits_minsep <- function(d, i, j) {
