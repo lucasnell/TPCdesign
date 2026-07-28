@@ -97,7 +97,6 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
 
     # Check args:
     single_integer(n_temps, "n_temps", .min = 2L)
-    single_number(n_temps, "n_temps", .min = 2L)
     single_number(ctmin, "ctmin")
     single_number(ctmax, "ctmax", .min = ctmin + .Machine$double.eps)
     single_number(a, "a", .min = .Machine$double.eps)
@@ -112,7 +111,6 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
     single_integer(digits, "digits", .min = 0L)
     single_integer(n_threads, "n_threads", .min = 1L)
 
-
     n_optimal <- n_temps - n_filler
 
     # genus-level relatives was 2.50°C for Tmin, 1.50°C for Tmax,
@@ -120,7 +118,6 @@ ace_design_temps <- function(n_temps, ctmin, ctmax, a, b,
     prior_ctmin <- ctmin + c(-1,1) * ctmin_err
     prior_ctmax <- ctmax + c(-1,1) * ctmax_err
     prior_lb <- log(b) + c(-1,1) * logb_err
-
 
     theta_draws <- cbind(ctmin = runif(n_draws, prior_ctmin[1], prior_ctmin[2]),
                          ctmax = runif(n_draws, prior_ctmax[1], prior_ctmax[2]),

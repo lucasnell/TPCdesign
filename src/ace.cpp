@@ -1,5 +1,6 @@
 
 #include "TPCdesign_types.h"
+#include "util.h" // log_det_cpp
 
 #include <algorithm>
 #include <math.h>
@@ -33,8 +34,6 @@ double utility_briere2D(const arma::mat& d, SEXP B) {
 
     uint32 n_pars = 4;
 
-    double val, sign;
-    bool ok;
     arma::mat G(n_temps, n_pars, arma::fill::none);
     arma::mat I(n_pars, n_pars, arma::fill::none);
 
@@ -69,12 +68,16 @@ double utility_briere2D(const arma::mat& d, SEXP B) {
         }
 
 
-        I = G.t() * G + 1e-10 * arma::eye(arma::size(I));
+        /*
+         I add 1e-6 to the diagonal because not doing this means that some
+         log determinants will be -Inf.
+         When one is -Inf, the whole mean is -Inf, meaning that these points
+         are entirely uninformative.
+         The fitting procedure works better when this does not happen.
+         */
+        I = G.t() * G + 1e-6 * arma::eye(arma::size(I));
 
-        // ----------------------------------------
-
-        ok = arma::log_det(val, sign, I);
-        logdet_sum += val;
+        logdet_sum += log_det_cpp(I);
     }
 
 

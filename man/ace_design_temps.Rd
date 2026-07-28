@@ -13,10 +13,10 @@ ace_design_temps(
   ctmin_err = 2.5,
   ctmax_err = 1.5,
   logb_err = 0.26,
-  min_sep = 0.5,
-  n_filler = 0,
-  n_draws = 100L,
-  n_starts = 5L,
+  min_sep = 1,
+  n_filler = 1L,
+  n_draws = 250L,
+  n_starts = 7L,
   digits = 2L,
   n_threads = 1L
 )
@@ -54,20 +54,20 @@ added (only happens when \code{n_filler >= 1}) is not affected by this
 argument, and unless the number of points is very high relative
 to the difference in maximum (\code{ctmax + ctmax_err}) and
 minimum (\code{ctmin + ctmin_err}) temperatures surveyed, having a minimum
-separation shouldn't change this step anyway. Defaults to \code{0.5}.}
+separation shouldn't change this step anyway. Defaults to \code{1}.}
 
 \item{n_filler}{Single integer specifying the number of temperatures
 that are equally spaced versus optimized.
 Equally spacing points can be a good bet hedging strategy if you're
 quite unsure of the TPC parameters (\code{ctmin}, \code{ctmax}, \code{a}, \code{b})
-you're using. Defaults to \code{0}.}
+you're using. Defaults to \code{1L}.}
 
 \item{n_draws}{Single integer specifying the number of prior draws to
 use. Increase if your certainty is low (i.e., \verb{*_err} parameters are
-high). Defaults to \code{100L}.}
+high). Defaults to \code{250L}.}
 
 \item{n_starts}{Single integer specifying the number of starts
-Defaults to \code{5L}.}
+Defaults to \code{7L}.}
 
 \item{digits}{Single integer specifying the digits to round temperatures to.
 Defaults to \code{2L}.}

@@ -7,6 +7,19 @@
 using namespace Rcpp;
 
 
+
+
+
+// For testing from R:
+//[[Rcpp::export]]
+double log_det(const arma::mat& A) {
+    double log_det = log_det_cpp(A);
+    return log_det;
+}
+
+
+
+
 //' Logit and inverse logit functions.
 //'
 //'@param p Numeric vector of proportion(s)
@@ -271,3 +284,8 @@ DataFrame sim_gamma_data(const arma::vec& temp,
     return out;
 
 }
+
+
+
+
+

@@ -24,6 +24,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// log_det
+double log_det(const arma::mat& A);
+RcppExport SEXP _TPCdesign_log_det(SEXP ASEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    rcpp_result_gen = Rcpp::wrap(log_det(A));
+    return rcpp_result_gen;
+END_RCPP
+}
 // logit
 NumericVector logit(NumericVector p);
 RcppExport SEXP _TPCdesign_logit(SEXP pSEXP) {
@@ -124,6 +135,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_TPCdesign_utility_briere2D", (DL_FUNC) &_TPCdesign_utility_briere2D, 2},
+    {"_TPCdesign_log_det", (DL_FUNC) &_TPCdesign_log_det, 1},
     {"_TPCdesign_logit", (DL_FUNC) &_TPCdesign_logit, 1},
     {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
     {"_TPCdesign_trunc_rnorm", (DL_FUNC) &_TPCdesign_trunc_rnorm, 3},

@@ -5,6 +5,10 @@ utility_briere2D <- function(d, B) {
     .Call(`_TPCdesign_utility_briere2D`, d, B)
 }
 
+log_det <- function(A) {
+    .Call(`_TPCdesign_log_det`, A)
+}
+
 #' Logit and inverse logit functions.
 #'
 #'@param p Numeric vector of proportion(s)
