@@ -2,15 +2,11 @@
 
 source("_testing/00-preamble.R")
 
-library(randomForest)
-library(iml)
 
 
-out_files <- list(mtry = "rf-mtry.rds") |>
-    map(\(x) paste0("_testing/interm-data/randomForest/", x))
-
-ace_df <- list.files("_testing/interm-data/ace-tuning", "ace-tuning.*.csv", full.names = TRUE) |>
-    read_csv(col_types = "iidddddiiiiddddid")
+ace_df <- list.files("_testing/interm-data/ace-tuning", "ace-tuning.*.csv",
+                     full.names = TRUE) |>
+    read_csv(col_types = "iiiddiiiidddddddd")
 
 
 # Columns that I varied across sims:
@@ -30,34 +26,70 @@ ace_summ_df <- ace_df |>
               .groups = "drop")
 
 
-# Takeaways with n_temps = 5, b = 0.2:
-# - n_filler == 1 is very helpful to prevent awful (rmse > 1e6) fits, but
-#   more makes the fits slightly worse
-# - *_eps don't seem to matter
-# - n_starts doesn't do much
-# - min_sep = 2 is generally better
-#
-#
 
 
-# Overall (only filter is n_filler >= 1) results:
-# - n_draws = 250 seems to be mildly best
+
+# Takeaways:
+# - n_draws has little effect
 # - n_starts has little effect
-# - n_filler = 1 works well for all
+# - min_sep = 2 is mildly better for b >= 0.5 and n_temps >= 9 and for
+#   b >= 1 and n_temps >= 8
+# - n_filler:
+#     * n_filler = 0 is often best, but can do REALLY bad sometimes
+#     * n_filler = 1 is generally best when b <= 0.5
+#     * n_filler = 1 or 2 is about the same when b == 1
+#     * n_filler = 3 is generally best when b == 2
 #
-#
+
+
+# m <- lm(rmse ~ min_sep * factor(b) * factor(n_temps), ace_summ_df |> filter(n_filler == 1))
+# pred <- ace_summ_df |> distinct(b, n_temps) |>
+#     crossing(min_sep = seq(0.5, 2, 0.05)) |>
+#     (\(x) mutate(x, rmse = predict(m, newdata = x)))()
+
+
+booter <- function(x) {
+    b <- aeonia::booter(x)
+    b |> as.list() |> as.data.frame() |> set_names(c("ymin", "y", "ymax"))
+}
+
+
 
 ace_summ_df |>
     # filter(b == 0.2, n_temps == 5) |>
     filter(n_filler >= 1) |>
-    ggplot(aes(min_sep, rmse)) +
-    geom_point(color = "gray60", size = 2, shape = 1) +
-    stat_smooth(formula = y ~ s(x, bs = "cs"), method = "gam", se = TRUE, linewidth = 1.5) +
-    # stat_summary(fun = "mean", geom = "point", size = 4, shape = 5, stroke = 1) +
-    facet_wrap(~ interaction(b, n_temps, sep = " - "), scales = "free_y", ncol = 3) +
+    ggplot(aes(n_filler, rmse)) +
+    geom_point(color = "gray70", size = 2, shape = 1) +
+    # stat_smooth(formula = y ~ s(x, bs = "cs", k=3), method = "gam", se = TRUE, linewidth = 1.5) +
+    # stat_smooth(formula = y ~ x, method = "lm", se = TRUE, linewidth = 1.5) +
+    stat_summary(fun.data = "booter", size = 1, shape = 5, stroke = 1,
+                 linewidth = 1) +
+    # stat_summary(fun = "mean", size = 1, shape = 5, stroke = 1) +
+    stat_summary(fun = "mean", linewidth = 1, geom = "line") +
+    facet_wrap(~ interaction(b, n_temps, sep = " - "), scales = "free_y",
+               ncol = length(unique(ace_summ_df$b))) +
+    # facet_wrap(~ factor(b), scales = "free_y",
+    #            ncol = length(unique(ace_summ_df$b))) +
+    # facet_wrap(~ factor(n_temps)) +
     scale_color_viridis_c(option = "plasma", begin = 0.2, end = 0.95) +
     theme(panel.spacing = unit(0, "lines"),
           strip.text = element_text())
+
+
+
+ace_summ_df |>
+    filter(abs(ctmin_eps) < 5, abs(ctmax_eps) < 3, abs(logb_eps) < 0.5) |>
+    ggplot(aes(n_filler, rmse)) +
+    geom_point(color = "gray70", size = 2, shape = 1) +
+    # stat_summary(fun.data = "mean_cl_boot", size = 1, shape = 5, stroke = 1,
+    #              linewidth = 1) +
+    facet_wrap(~ interaction(b, n_temps, sep = " - "), scales = "free_y",
+               ncol = length(unique(ace_summ_df$b))) +
+    theme(panel.spacing = unit(0, "lines"),
+          strip.text = element_text())
+
+
+
 
 
 

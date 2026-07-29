@@ -84,16 +84,12 @@ source("ace-tuning.R")
 
 
 set.seed(1981443946)
-lhs_df <- maximinLHS(n = 1000, k = 9) |>
+lhs_df <- maximinLHS(n = 1000, k = 6) |>
     as.data.frame() |>
-    set_names(c("n_temps", "b", "ctmin_eps", "ctmax_eps",
-                "logb_eps", "min_sep", "n_filler", "n_draws", "n_starts")) |>
+    set_names(c("n_temps", "b", "min_sep", "n_filler", "n_draws", "n_starts")) |>
     as_tibble() |>
     mutate(n_temps = qinteger(n_temps, 5, 10) |> as.integer(),
            b = c(0.2, 0.5, 1, 2)[qinteger(b, 1, 4)],
-           ctmin_eps = (2.5 * -2:2)[qinteger(ctmin_eps, 1, 5)], # [-5, +5]
-           ctmax_eps = (1.5 * -2:2)[qinteger(ctmax_eps, 1, 5)], # [-3, +3]
-           logb_eps = (0.26 * -2:2)[qinteger(logb_eps, 1, 5)], # [-0.52, +0.52]
            min_sep = min_sep * (2 - 0.5) + 0.5,
            n_filler = qinteger(n_filler, 0, 3) |> as.integer(),
            n_draws = qinteger(n_draws, 50, 500) |> as.integer(),
@@ -103,12 +99,23 @@ lhs_df <- maximinLHS(n = 1000, k = 9) |>
            obs_cv = 0.2,
            ctmin = 5,
            ctmax = 40,
-           a = 1,
-           # to keep track of specific combinations:
-           combo = 1:n()) |>
-    select(combo, everything()) |>
-    # Now there's one row per combo + rep:
-    crossing(tibble(rep = 1:100))
+           a = 1) |>
+    # Specific deviates for parameters (10 sets per combos above):
+    mutate(pars = map(1:n(), \(i) {
+        optimumLHS(n = 10, k = 3) |>
+            as.data.frame() |>
+            set_names(c("ctmin_eps", "ctmax_eps", "logb_eps")) |>
+            as_tibble() |>
+            mutate(ctmin_eps = 2 * 2.5 * (2 * ctmin_eps - 1), # [-5, +5]
+                   ctmax_eps = 2 * 1.5 * (2 * ctmax_eps - 1), # [-3, +3]
+                   logb_eps = 2 * 0.26 * (2 * logb_eps - 1))  # [-0.52, +0.52]
+    })) |>
+    unnest(pars) |>
+    # to keep track of specific combinations:
+    mutate(combo = 1:n()) |>
+    # Repetitions (10 for each of above):
+    crossing(tibble(rep = 1:10)) |>
+    select(combo, rep, everything())
 
 
 
@@ -183,7 +190,7 @@ all_combo_rep_rmse <- function(lhs_df, .seed) {
 
 
 
-# Took  min per job, where each job processed 2500 rows using 6 threads
+# Took ~2 hrs per job, where each job processed 2500 rows using 6 threads
 
 cat("Starting simulations...\n")
 t0 <- Sys.time()
