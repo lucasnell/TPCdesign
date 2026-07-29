@@ -7,6 +7,7 @@
 
 
 
+
 # Coefficients from one fit for one combo of parameters
 one_test_fit <- function(i, temps, n_reps, obs_cv, ctmin, ctmax, a, b) {
 
@@ -56,35 +57,53 @@ one_combo_fits <- function(j, input_df,
                            .ctmin_err = 2.50,
                            .ctmax_err = 1.50,
                            .logb_err = 0.26,
-                           .n_test_fits = 100L,
-                           .opt_temp_p = 1,
-                           ...) {
+                           .n_test_fits = 100L) {
 
-    n_temps <- input_df[["n_temps"]][[j]]
-    n_reps <- input_df[["n_reps"]][[j]]
-    obs_cv <- input_df[["obs_cv"]][[j]]
-    ctmin <- input_df[["ctmin"]][[j]]
-    ctmax <- input_df[["ctmax"]][[j]]
-    a <- input_df[["a"]][[j]]
-    b <- input_df[["b"]][[j]]
+    # j = 7L; .ctmin_err = 2.50; .ctmax_err = 1.50; .logb_err = 0.26
+    # .n_test_fits = 30L
+    # rm(j, input_df, .ctmin_err, .ctmax_err, .logb_err, .n_test_fits)
+    # rm(ace_args, x, .n_par_fits, par_lhs_df, temps, Topt, coef_df)
 
-    # genus-level relatives was 2.50°C for Tmin, 1.50°C for Tmax,
-    # and 0.26 for log(b)
+    # Create argument list for extra parameters for ace_design_temps:
+    ace_args <- slice(input_df, j) |> as.list()
+    for (x in c("combo", "rep", "rmse")) ace_args[[x]] <- NULL
+    for (x in c("n_temps", "n_reps", "obs_cv", "ctmin", "ctmax", "a", "b")) {
+        assign(x, ace_args[[x]])
+        # These are needed for ace_design_temps (and are not modified):
+        if (!x %in% c("n_temps", "a")) ace_args[[x]] <- NULL
+    }
+    # if (b > 1) ace_args[["n_filler"]] <- 3L
+
+    if (!identical(as.integer(.n_test_fits) %% 10L, 0L)) {
+        stop(".n_test_fits must be a multiple of 10")
+    }
+    .n_par_fits <- as.integer(.n_test_fits) %/% 10L
+    par_lhs_df <- optimumLHS(n = .n_par_fits, k = 3) |>
+        as.data.frame() |>
+        set_names(c("ctmin_eps", "ctmax_eps", "logb_eps")) |>
+        as_tibble() |>
+        mutate(ctmin_eps = 2 * 2.5 * (2 * ctmin_eps - 1), # [-5, +5]
+               ctmax_eps = 2 * 1.5 * (2 * ctmax_eps - 1), # [-3, +3]
+               logb_eps = 2 * 0.26 * (2 * logb_eps - 1))  # [-0.52, +0.52]
+
     temps <- map(1:.n_test_fits, \(i) {
-        .ctmin <- ctmin + sample(c(-1,1),1) * .ctmin_err
-        .ctmax <- ctmax + sample(c(-1,1),1) * .ctmax_err
-        .b <- exp(log(b) + sample(c(-1,1),1) * .logb_err)
-        dtemps <- ace_design_temps(n_temps, .ctmin, .ctmax, a, .b,
-                                   opt_temp_p = .opt_temp_p, ...)
-        etemps <- seq(.ctmin-5, .ctmax+5, length.out = n_temps+2L) |>
+        eps  <- par_lhs_df[(i-1L) %/% 10L + 1L,] |> as.list()
+        args <- ace_args
+        args[["ctmin"]] <- ctmin + eps[["ctmin_eps"]]
+        args[["ctmax"]] <- ctmax + eps[["ctmax_eps"]]
+        args[["b"]] <- exp(log(b) + eps[["logb_eps"]])
+        dtemps <- do.call(ace_design_temps, args)
+        etemps <- seq(args$ctmin-5, args$ctmax+5, length.out = n_temps+2L) |>
             head(-1) |> tail(-1) |> round(2)
-        return(list(design = dtemps, even = etemps))
+        return(list(design = dtemps, uniform = etemps))
     })
 
 
+    Topt <- briere2_tpc_Topt(ctmin, ctmax, b)
+
     coef_df <- imap(temps,
                     \(temp, i) {
-                        Topt <- briere2_tpc_Topt(ctmin, ctmax, b)
+                        eps  <- par_lhs_df[(i-1L) %/% 10L + 1L,] |> as.list()
                         imap(temp, \(tmp, m) {
                             one_test_fit(i = i, temps = tmp,
                                          n_reps = n_reps, obs_cv = obs_cv,
@@ -93,12 +112,15 @@ one_combo_fits <- function(j, input_df,
                                 mutate(method = m)
                         }) |>
                             list_rbind() |>
-                            select(rep, method, everything()) |>
-                            add_row(rep = i, method  = "real",
-                                    ctmin = .env$ctmin, ctmax = .env$ctmax,
-                                    a = .env$a, b = .env$b, Topt = .env$Topt)
+                            mutate(ctmin_eps = eps[["ctmin_eps"]],
+                                   ctmax_eps = eps[["ctmax_eps"]],
+                                   logb_eps = eps[["logb_eps"]]) |>
+                            select(rep, method, everything())
                     }) |>
         list_rbind() |>
+        add_row(rep = NA, method  = "real",
+                ctmin = .env$ctmin, ctmax = .env$ctmax,
+                a = .env$a, b = .env$b, Topt = .env$Topt) |>
         mutate(n_temps = .env$n_temps,
                n_reps = .env$n_reps,
                obs_cv = .env$obs_cv) |>

@@ -26,8 +26,7 @@ export MAX_ARRAY_INDEX=36
 # I first moved this script and the preamble over to bioHPC using the following:
 #
 # cd ~/GitHub/Stanford/TPCdesign/_testing
-# scp big-ace-test.R big-ace-test.sh \
-#   lan68@cbsugreischar.biohpc.cornell.edu:/home2/lan68/tpc/testing/
+# scp big-ace-test.* lan68@cbsugreischar.biohpc.cornell.edu:/home2/lan68/tpc/testing/
 #
 # This was then run on BioHPC in a non-interactive batch job started with the following:
 #
@@ -45,6 +44,7 @@ export MAX_ARRAY_INDEX=36
 # To test:
 # cd /home2/lan68/tpc/testing/
 # srun -N 1 -n 1 -c 4 --mem=20G --time=2:00:00 --job-name="ace" --pty bash -i
+# export MAX_ARRAY_INDEX=36
 # export OMP_NUM_THREADS=1
 # R --vanilla
 #
@@ -85,13 +85,13 @@ source("big-ace-test.R")
 
 
 input_df <- crossing(n_temps = 5:10,
-                   n_reps = 3:10,
-                   b = c(0.2, 0.5, 1, 2),
-                   obs_cv = 0.2 * c(0.5, 1, 2),
-                   # Things that don't vary:
-                   ctmin = 5,
-                   ctmax = 40,
-                   a = 1)
+                     n_reps = 3:10,
+                     b = c(0.2, 0.5, 1, 2),
+                     obs_cv = 0.2 * c(0.5, 1, 2),
+                     # Things that don't vary:
+                     ctmin = 5,
+                     ctmax = 40,
+                     a = 1)
 
 
 # --------------*
