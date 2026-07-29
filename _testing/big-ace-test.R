@@ -57,12 +57,15 @@ one_combo_fits <- function(j, input_df,
                            .ctmin_err = 2.50,
                            .ctmax_err = 1.50,
                            .logb_err = 0.26,
-                           .n_test_fits = 100L) {
+                           .n_test_fits = 100L,
+                           .parent_prog = function(...) NULL,
+                           .parallel = FALSE,
+                           .parallel_seed = TRUE) {
 
     # j = 7L; .ctmin_err = 2.50; .ctmax_err = 1.50; .logb_err = 0.26
     # .n_test_fits = 30L
     # rm(j, input_df, .ctmin_err, .ctmax_err, .logb_err, .n_test_fits)
-    # rm(ace_args, x, .n_par_fits, par_lhs_df, temps, Topt, coef_df)
+    # rm(ace_args, x, .n_par_fits, par_lhs_list, temps, Topt, fit_df)
 
     # Create argument list for extra parameters for ace_design_temps:
     ace_args <- slice(input_df, j) |> as.list()
@@ -72,51 +75,67 @@ one_combo_fits <- function(j, input_df,
         # These are needed for ace_design_temps (and are not modified):
         if (!x %in% c("n_temps", "a")) ace_args[[x]] <- NULL
     }
-    # if (b > 1) ace_args[["n_filler"]] <- 3L
+
+    Topt <- briere2_tpc_Topt(ctmin, ctmax, b) # used in output
 
     if (!identical(as.integer(.n_test_fits) %% 10L, 0L)) {
         stop(".n_test_fits must be a multiple of 10")
     }
     .n_par_fits <- as.integer(.n_test_fits) %/% 10L
-    par_lhs_df <- optimumLHS(n = .n_par_fits, k = 3) |>
+    par_lhs_list <- lhs::optimumLHS(n = .n_par_fits, k = 3) |>
         as.data.frame() |>
         set_names(c("ctmin_eps", "ctmax_eps", "logb_eps")) |>
-        as_tibble() |>
-        mutate(ctmin_eps = 2 * 2.5 * (2 * ctmin_eps - 1), # [-5, +5]
-               ctmax_eps = 2 * 1.5 * (2 * ctmax_eps - 1), # [-3, +3]
-               logb_eps = 2 * 0.26 * (2 * logb_eps - 1))  # [-0.52, +0.52]
+        mutate(ctmin_eps = 2 * 2.5 * (2 * ctmin_eps - 1),    # [-5, +5]
+               ctmax_eps = 2 * 1.5 * (2 * ctmax_eps - 1),    # [-3, +3]
+               logb_eps = 2 * 0.26 * (2 * logb_eps - 1)) |>  # [-0.52, +0.52]
+        asplit(1) |>
+        map(as.list)
 
-    temps <- map(1:.n_test_fits, \(i) {
-        eps  <- par_lhs_df[(i-1L) %/% 10L + 1L,] |> as.list()
+
+    one_temp_fun <- function(i) {
+        eps  <- par_lhs_list[[(i-1L) %/% 10L + 1L]]
         args <- ace_args
         args[["ctmin"]] <- ctmin + eps[["ctmin_eps"]]
         args[["ctmax"]] <- ctmax + eps[["ctmax_eps"]]
         args[["b"]] <- exp(log(b) + eps[["logb_eps"]])
         dtemps <- do.call(ace_design_temps, args)
-        etemps <- seq(args$ctmin-5, args$ctmax+5, length.out = n_temps+2L) |>
+        utemps <- seq(args$ctmin-5, args$ctmax+5, length.out = n_temps+2L) |>
             head(-1) |> tail(-1) |> round(2)
-        return(list(design = dtemps, uniform = etemps))
-    })
 
+        dfit <- one_test_fit(i = i, temps = dtemps,
+                             n_reps = n_reps, obs_cv = obs_cv,
+                             ctmin = ctmin, ctmax = ctmax,
+                             a = a, b = b) |>
+            mutate(method = "design")
+        ufit <- one_test_fit(i = i, temps = utemps,
+                             n_reps = n_reps, obs_cv = obs_cv,
+                             ctmin = ctmin, ctmax = ctmax,
+                             a = a, b = b) |>
+            mutate(method = "uniform")
 
-    Topt <- briere2_tpc_Topt(ctmin, ctmax, b)
+        out <- bind_rows(dfit, ufit) |>
+            mutate(ctmin_eps = eps[["ctmin_eps"]],
+                   ctmax_eps = eps[["ctmax_eps"]],
+                   logb_eps = eps[["logb_eps"]]) |>
+            select(rep, method, everything())
 
-    coef_df <- imap(temps,
-                    \(temp, i) {
-                        eps  <- par_lhs_df[(i-1L) %/% 10L + 1L,] |> as.list()
-                        imap(temp, \(tmp, m) {
-                            one_test_fit(i = i, temps = tmp,
-                                         n_reps = n_reps, obs_cv = obs_cv,
-                                         ctmin = ctmin, ctmax = ctmax,
-                                         a = a, b = b) |>
-                                mutate(method = m)
-                        }) |>
-                            list_rbind() |>
-                            mutate(ctmin_eps = eps[["ctmin_eps"]],
-                                   ctmax_eps = eps[["ctmax_eps"]],
-                                   logb_eps = eps[["logb_eps"]]) |>
-                            select(rep, method, everything())
-                    }) |>
+        return(out)
+    }
+
+    if (.parallel) {
+        fit_df <- future_lapply(1:.n_test_fits, one_temp_fun,
+                               future.seed = .parallel_seed,
+                               future.globals = c("par_lhs_list", "ace_args",
+                                                  "ctmin", "ctmax", "a", "b",
+                                                  "n_reps", "obs_cv", "n_temps",
+                                                  "one_test_fit"),
+                               future.packages = c("TPCdesign", "dplyr",
+                                                   "nls.multstart", "tibble"))
+    } else {
+        fit_df <- map(1:.n_test_fits, one_temp_fun)
+    }
+
+    fit_df <- fit_df |>
         list_rbind() |>
         add_row(rep = NA, method  = "real",
                 ctmin = .env$ctmin, ctmax = .env$ctmax,
@@ -127,8 +146,10 @@ one_combo_fits <- function(j, input_df,
         mutate(combo = j) |>
         select(combo, rep, method, n_temps:obs_cv, everything())
 
+    .parent_prog()
 
-    return(coef_df)
+
+    return(fit_df)
 
 }
 
