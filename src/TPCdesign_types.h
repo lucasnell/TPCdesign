@@ -19,8 +19,6 @@
 #include <cstdint>
 
 
-// #include <RcppThread.h>         // multithreading
-
 
 /*
  Armadillo docs:

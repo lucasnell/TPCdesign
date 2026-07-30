@@ -1,6 +1,6 @@
 
 
-#include "util.h"
+#include "sim-data.h"
 #include <random>
 
 
@@ -8,45 +8,6 @@ using namespace Rcpp;
 
 
 
-
-
-// For testing from R:
-//[[Rcpp::export]]
-double log_det(const arma::mat& A) {
-    double log_det = log_det_cpp(A);
-    return log_det;
-}
-
-
-
-
-//' Logit and inverse logit functions.
-//'
-//'@param p Numeric vector of proportion(s)
-//' @export
-//'
-//[[Rcpp::export]]
-NumericVector logit(NumericVector p) {
-    NumericVector out(p.size());
-    for (uint32 i = 0; i < p.size(); i++) {
-        logit_cpp(p[i], out[i]);
-    }
-    return out;
-}
-//' @rdname logit
-//'
-//'@param a Numeric vector of values that aren't necessarily proportions
-//'
-//' @export
-//'
-//[[Rcpp::export]]
-NumericVector inv_logit(NumericVector a){
-    NumericVector out(a.size());
-    for (uint32 i = 0; i < a.size(); i++) {
-        inv_logit_cpp(a[i], out[i]);
-    }
-    return out;
-}
 
 
 
@@ -86,100 +47,6 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
     return out;
 
 }
-
-
-
-/*
-===============================================================================*
-===============================================================================*
- Brière-2 thermal performance curve (TPC)
-===============================================================================*
-===============================================================================*
- */
-
-
-
-
-//' Brière-2 thermal performance curve (TPC)
-//'
-//' Note that this TPC does not perform well when ctmin is positive, but
-//' there are negative temperatures.
-//' For example, if you run `briere2_tpc(c(-10, 0, 10), ctmin = 5,
-//' ctmax = 30, a = 1, b = 0.2, TRUE)`, you'll see that a temperature of `-10`
-//' gives a greater performance value than `10`.
-//'
-//' @param temp Numeric vector of temperatures
-//' @param ctmin Single numeric for parameter `ctmin`.
-//' @param ctmax Single numeric for parameter `ctmax`.
-//' @param a Single numeric for parameter `a`.
-//' @param b Single numeric for parameter `b`.
-//' @param scale Single logical for whether to scale to make max value 1.
-//'     Defaults to `FALSE`.
-//'
-//' @returns A numeric vector for measure of performance for each in `temp`
-//'
-//' @export
-//'
-//[[Rcpp::export]]
-arma::vec briere2_tpc(const arma::vec& temp,
-                          const double& ctmin,
-                          const double& ctmax,
-                          const double& a,
-                          const double& b,
-                          const bool& scale = false) {
-    arma::vec out = briere2_tpc_cpp(temp, ctmin, ctmax, a, b, scale);
-    return out;
-}
-
-
-
-
-
-//' Derivative of Brière-2 thermal performance curve (TPC) with respect to time
-//'
-//'
-//' @inheritParams briere2_tpc
-//'
-//' @returns A numeric vector for first derivative of measures of
-//' performance for each in `temp`
-//'
-//' @export
-//'
-//[[Rcpp::export]]
-arma::vec briere2_tpc_deriv(const arma::vec& temp,
-                            const double& ctmin,
-                            const double& ctmax,
-                            const double& a,
-                            const double& b) {
-
-    arma::vec out(temp.n_elem, arma::fill::none);
-    double a_ctmax_T_b, a_ctmax_T_b1, temp_ctmin;
-    for (uint32 i = 0; i < temp.n_elem; i++) {
-        const double& T(temp.at(i));
-        if (T >= ctmax || T <= ctmin) {
-            out.at(i) = 0;
-        } else {
-            a_ctmax_T_b = a * std::pow(ctmax - T, b); // a (ctmax - T)^b
-            a_ctmax_T_b1 = a_ctmax_T_b / (ctmax - T); // a (ctmax - T)^(b-1)
-            temp_ctmin = T - ctmin;
-            out.at(i) = a_ctmax_T_b * T + a_ctmax_T_b * temp_ctmin -
-                b * a_ctmax_T_b1 * T * temp_ctmin;
-        }
-    }
-    /*
-     a (ctmax - T)^b T + a (ctmax - T)^b (T - ctmin) -
-        a b (ctmax - T)^(b - 1) T (T - ctmin)
-     */
-
-    return out;
-}
-
-
-
-
-
-
-
 
 
 

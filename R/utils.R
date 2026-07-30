@@ -85,15 +85,3 @@ err_msg <- function(par, ...) {
 }
 
 
-
-# Get number of decimal places in a number.
-# Note: this assumes we don't care about numbers smaller than 10 decimal places.
-# Vectored version of here: https://stackoverflow.com/a/5173906/5016095
-decimalplaces <- function(x) {
-    sub('0+$', '', sprintf("%.10f", x)) |>
-        strsplit(".", fixed = TRUE) |>
-        sapply(\(z) {
-            if (length(z) == 1) return(0L)
-            return(nchar(z[[2]]))
-        })
-}

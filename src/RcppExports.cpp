@@ -12,18 +12,6 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// utility_briere2D
-double utility_briere2D(const arma::mat& d, SEXP B);
-RcppExport SEXP _TPCdesign_utility_briere2D(SEXP dSEXP, SEXP BSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::mat& >::type d(dSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
-    rcpp_result_gen = Rcpp::wrap(utility_briere2D(d, B));
-    return rcpp_result_gen;
-END_RCPP
-}
 // log_det
 double log_det(const arma::mat& A);
 RcppExport SEXP _TPCdesign_log_det(SEXP ASEXP) {
@@ -35,25 +23,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// logit
-NumericVector logit(NumericVector p);
-RcppExport SEXP _TPCdesign_logit(SEXP pSEXP) {
+// utility_briere2
+double utility_briere2(const arma::mat& d, SEXP B);
+RcppExport SEXP _TPCdesign_utility_briere2(SEXP dSEXP, SEXP BSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(logit(p));
-    return rcpp_result_gen;
-END_RCPP
-}
-// inv_logit
-NumericVector inv_logit(NumericVector a);
-RcppExport SEXP _TPCdesign_inv_logit(SEXP aSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< NumericVector >::type a(aSEXP);
-    rcpp_result_gen = Rcpp::wrap(inv_logit(a));
+    Rcpp::traits::input_parameter< const arma::mat& >::type d(dSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type B(BSEXP);
+    rcpp_result_gen = Rcpp::wrap(utility_briere2(d, B));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -80,6 +58,24 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double& >::type mu(muSEXP);
     Rcpp::traits::input_parameter< const double& >::type sigma(sigmaSEXP);
     rcpp_result_gen = Rcpp::wrap(trunc_rnorm_range(n, mu, sigma));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sim_gamma_data
+DataFrame sim_gamma_data(const arma::vec& temp, const int& n_reps, const double& obs_cv, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale_tpc);
+RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scale_tpcSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type temp(tempSEXP);
+    Rcpp::traits::input_parameter< const int& >::type n_reps(n_repsSEXP);
+    Rcpp::traits::input_parameter< const double& >::type obs_cv(obs_cvSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmin(ctminSEXP);
+    Rcpp::traits::input_parameter< const double& >::type ctmax(ctmaxSEXP);
+    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
+    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
+    Rcpp::traits::input_parameter< const bool& >::type scale_tpc(scale_tpcSEXP);
+    rcpp_result_gen = Rcpp::wrap(sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -114,35 +110,29 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// sim_gamma_data
-DataFrame sim_gamma_data(const arma::vec& temp, const int& n_reps, const double& obs_cv, const double& ctmin, const double& ctmax, const double& a, const double& b, const bool& scale_tpc);
-RcppExport SEXP _TPCdesign_sim_gamma_data(SEXP tempSEXP, SEXP n_repsSEXP, SEXP obs_cvSEXP, SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP aSEXP, SEXP bSEXP, SEXP scale_tpcSEXP) {
+// briere2_tpc_Topt
+arma::vec briere2_tpc_Topt(arma::vec ctmin, arma::vec ctmax, arma::vec b);
+RcppExport SEXP _TPCdesign_briere2_tpc_Topt(SEXP ctminSEXP, SEXP ctmaxSEXP, SEXP bSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const arma::vec& >::type temp(tempSEXP);
-    Rcpp::traits::input_parameter< const int& >::type n_reps(n_repsSEXP);
-    Rcpp::traits::input_parameter< const double& >::type obs_cv(obs_cvSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ctmin(ctminSEXP);
-    Rcpp::traits::input_parameter< const double& >::type ctmax(ctmaxSEXP);
-    Rcpp::traits::input_parameter< const double& >::type a(aSEXP);
-    Rcpp::traits::input_parameter< const double& >::type b(bSEXP);
-    Rcpp::traits::input_parameter< const bool& >::type scale_tpc(scale_tpcSEXP);
-    rcpp_result_gen = Rcpp::wrap(sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc));
+    Rcpp::traits::input_parameter< arma::vec >::type ctmin(ctminSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type ctmax(ctmaxSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type b(bSEXP);
+    rcpp_result_gen = Rcpp::wrap(briere2_tpc_Topt(ctmin, ctmax, b));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_TPCdesign_utility_briere2D", (DL_FUNC) &_TPCdesign_utility_briere2D, 2},
     {"_TPCdesign_log_det", (DL_FUNC) &_TPCdesign_log_det, 1},
-    {"_TPCdesign_logit", (DL_FUNC) &_TPCdesign_logit, 1},
-    {"_TPCdesign_inv_logit", (DL_FUNC) &_TPCdesign_inv_logit, 1},
+    {"_TPCdesign_utility_briere2", (DL_FUNC) &_TPCdesign_utility_briere2, 2},
     {"_TPCdesign_trunc_rnorm", (DL_FUNC) &_TPCdesign_trunc_rnorm, 3},
     {"_TPCdesign_trunc_rnorm_range", (DL_FUNC) &_TPCdesign_trunc_rnorm_range, 3},
+    {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 8},
     {"_TPCdesign_briere2_tpc", (DL_FUNC) &_TPCdesign_briere2_tpc, 6},
     {"_TPCdesign_briere2_tpc_deriv", (DL_FUNC) &_TPCdesign_briere2_tpc_deriv, 5},
-    {"_TPCdesign_sim_gamma_data", (DL_FUNC) &_TPCdesign_sim_gamma_data, 8},
+    {"_TPCdesign_briere2_tpc_Topt", (DL_FUNC) &_TPCdesign_briere2_tpc_Topt, 3},
     {NULL, NULL, 0}
 };
 

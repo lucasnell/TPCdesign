@@ -1,13 +1,13 @@
 Package: TPCdesign
 Title: Design Informative Thermal Performance Experiments
-Version: 0.0.2.6
+Version: 1.0.0
 Authors@R: c(
     person("Lucas A.", "Nell", , "lucnell@gmail.com", role = c("aut", "cre"),
            comment = c(ORCID = "0000-0003-3209-0517")),
     person("Kelsey", "Lyberger", , "Kelsey.Lyberger@asu.edu", role = "aut",
            comment = c(ORCID = "0000-0003-4903-380X"))
   )
-Description: What the package does (one paragraph).
+Description: Use more informative temperatures when fitting TPCs.
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -19,7 +19,22 @@ LinkingTo:
 Imports: 
     acebayes,
     lhs,
-    Rcpp (>= 1.0.0)
+    methods,
+    Rcpp (>= 1.0.0),
+    stats
 Suggests: 
-    nls.multstart
+    future,
+    future.apply,
+    nls.multstart,
+    testthat (>= 3.0.0)
+SystemRequirements: GNU make
+URL: https://github.com/lucasnell/TPCdesign
+BugReports: https://github.com/lucasnell/TPCdesign/issues
+RemoteType: github
+RemoteHost: api.github.com
+RemoteRepo: TPCdesign
+RemoteUsername: lucasnell
+GithubRepo: TPCdesign
+GithubUsername: lucasnell
 Config/roxygen2/version: 8.0.0
+Config/testthat/edition: 3

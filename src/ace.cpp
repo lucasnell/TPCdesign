@@ -1,6 +1,5 @@
 
-#include "TPCdesign_types.h"
-#include "util.h" // log_det_cpp
+#include "ace.h" // log_det_cpp
 
 #include <algorithm>
 #include <math.h>
@@ -11,8 +10,18 @@ using namespace Rcpp;
 
 
 
+// For testing from R:
 //[[Rcpp::export]]
-double utility_briere2D(const arma::mat& d, SEXP B) {
+double log_det(const arma::mat& A) {
+    double log_det = log_det_cpp(A);
+    return log_det;
+}
+
+
+
+// Utility function for ACE method, used in `design_temps`
+//[[Rcpp::export]]
+double utility_briere2(const arma::mat& d, SEXP B) {
 
     // Because pace passes a list sometimes:
     arma::mat theta;
