@@ -25,7 +25,9 @@ Imports:
 Suggests: 
     future,
     future.apply,
+    knitr,
     nls.multstart,
+    rmarkdown,
     testthat (>= 3.0.0)
 SystemRequirements: GNU make
 URL: https://github.com/lucasnell/TPCdesign
@@ -38,3 +40,4 @@ GithubRepo: TPCdesign
 GithubUsername: lucasnell
 Config/roxygen2/version: 8.0.0
 Config/testthat/edition: 3
+VignetteBuilder: knitr

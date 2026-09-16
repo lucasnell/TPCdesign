@@ -53,3 +53,4 @@ rsconnect/
 
 # plot files
 *.pdf
+inst/doc
