@@ -29,3 +29,7 @@ there are negative temperatures.
 For example, if you run \code{briere2_tpc(c(-10, 0, 10), ctmin = 5, ctmax = 30, a = 1, b = 0.2, TRUE)}, you'll see that a temperature of \code{-10}
 gives a greater performance value than \code{10}.
 }
+\examples{
+briere2_tpc(temp = seq(10, 35, 5), ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+
+}

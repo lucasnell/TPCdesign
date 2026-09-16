@@ -38,6 +38,11 @@ trunc_rnorm_range <- function(n, mu, sigma) {
 #'     performance values (column `"y"`) with gamma (or normal approximation)
 #'     error.
 #'
+#' @examples
+#' set.seed(1)
+#' sim_gamma_data(temp = seq(10, 35, 5), n_reps = 3, obs_cv = 0.1,
+#'                ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+#'
 sim_gamma_data <- function(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE) {
     .Call(`_TPCdesign_sim_gamma_data`, temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc)
 }
@@ -60,22 +65,15 @@ sim_gamma_data <- function(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc =
 #'
 #' @returns A numeric vector for measure of performance for each in `temp`
 #'
+#' @examples
+#' briere2_tpc(temp = seq(10, 35, 5), ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+#'
 #' @export
 #'
 briere2_tpc <- function(temp, ctmin, ctmax, a, b, scale = FALSE) {
     .Call(`_TPCdesign_briere2_tpc`, temp, ctmin, ctmax, a, b, scale)
 }
 
-#' Derivative of Brière-2 thermal performance curve (TPC) with respect to time
-#'
-#'
-#' @inheritParams briere2_tpc
-#'
-#' @returns A numeric vector for first derivative of measures of
-#' performance for each in `temp`
-#'
-#' @export
-#'
 briere2_tpc_deriv <- function(temp, ctmin, ctmax, a, b) {
     .Call(`_TPCdesign_briere2_tpc_deriv`, temp, ctmin, ctmax, a, b)
 }
@@ -90,6 +88,9 @@ briere2_tpc_deriv <- function(temp, ctmin, ctmax, a, b) {
 #' @param b Numeric vector for parameter `b`.
 #'
 #' @returns A numeric vector of optimum temperatures.
+#'
+#' @examples
+#' briere2_tpc_Topt(ctmin = 8, ctmax = 38, b = 0.2)
 #'
 #' @export
 #'

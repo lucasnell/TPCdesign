@@ -37,6 +37,9 @@ using namespace Rcpp;
 //'
 //' @returns A numeric vector for measure of performance for each in `temp`
 //'
+//' @examples
+//' briere2_tpc(temp = seq(10, 35, 5), ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+//'
 //' @export
 //'
 //[[Rcpp::export]]
@@ -53,17 +56,18 @@ arma::vec briere2_tpc(const arma::vec& temp,
 
 
 
+/*
+ Derivative of Brière-2 thermal performance curve (TPC) with respect to time.
 
-//' Derivative of Brière-2 thermal performance curve (TPC) with respect to time
-//'
-//'
-//' @inheritParams briere2_tpc
-//'
-//' @returns A numeric vector for first derivative of measures of
-//' performance for each in `temp`
-//'
-//' @export
-//'
+ Note: this function was used in an older version of this package but is kept
+    around in case we want to use it later.
+
+ @inheritParams briere2_tpc
+
+ @returns A numeric vector for first derivative of measures of
+ performance for each in `temp`
+
+*/
 //[[Rcpp::export]]
 arma::vec briere2_tpc_deriv(const arma::vec& temp,
                             const double& ctmin,
@@ -106,6 +110,9 @@ arma::vec briere2_tpc_deriv(const arma::vec& temp,
 //' @param b Numeric vector for parameter `b`.
 //'
 //' @returns A numeric vector of optimum temperatures.
+//'
+//' @examples
+//' briere2_tpc_Topt(ctmin = 8, ctmax = 38, b = 0.2)
 //'
 //' @export
 //'

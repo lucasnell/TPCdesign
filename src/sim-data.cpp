@@ -86,6 +86,11 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
 //'     performance values (column `"y"`) with gamma (or normal approximation)
 //'     error.
 //'
+//' @examples
+//' set.seed(1)
+//' sim_gamma_data(temp = seq(10, 35, 5), n_reps = 3, obs_cv = 0.1,
+//'                ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+//'
 //[[Rcpp::export]]
 DataFrame sim_gamma_data(const arma::vec& temp,
                          const int& n_reps,

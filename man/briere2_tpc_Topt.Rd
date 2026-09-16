@@ -19,3 +19,7 @@ A numeric vector of optimum temperatures.
 \description{
 Note that parameter \code{a} is not necessary for this calculation.
 }
+\examples{
+briere2_tpc_Topt(ctmin = 8, ctmax = 38, b = 0.2)
+
+}

@@ -38,3 +38,9 @@ error.
 \description{
 Simulate data with gamma distributed error (or normal approximation)
 }
+\examples{
+set.seed(1)
+sim_gamma_data(temp = seq(10, 35, 5), n_reps = 3, obs_cv = 0.1,
+               ctmin = 8, ctmax = 38, a = 1, b = 0.2)
+
+}
