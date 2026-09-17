@@ -13,7 +13,7 @@ design_temps(
   ctmin_err = 2.5,
   ctmax_err = 1.5,
   logb_err = 0.26,
-  min_sep = 1,
+  min_sep = 2,
   n_filler = 1L,
   n_draws = 250L,
   n_starts = 7L,
@@ -21,58 +21,92 @@ design_temps(
 )
 }
 \arguments{
-\item{n_temps}{Single integer for the number of temperatures to sample from.
+\item{n_temps}{Single integer for the total number of temperatures to
+return, including any filler temperatures added via \code{n_filler}.
 Must be >= 2.}
 
-\item{ctmin}{Single numeric for parameter \code{ctmin}.}
+\item{ctmin}{Single numeric for your best guess at the curve's critical
+thermal minimum, i.e., the lower temperature at which performance
+reaches zero. Used as the center of the uniform prior for \code{ctmin}
+(see \code{ctmin_err}).}
 
-\item{ctmax}{Single numeric for parameter \code{ctmax}. Must be > \code{ctmin}.}
+\item{ctmax}{Single numeric for your best guess at the curve's critical
+thermal maximum, i.e., the upper temperature at which performance
+reaches zero. Used as the center of the uniform prior for \code{ctmax}
+(see \code{ctmax_err}). Must be > \code{ctmin}.}
 
-\item{a}{Single numeric for parameter \code{a}. Must be > 0.}
+\item{a}{Single numeric for your best guess at the Brière-2 curve's
+\code{a} parameter, which scales the overall magnitude of performance.
+Unlike \code{ctmin}, \code{ctmax}, and \code{b}, \code{a} is treated as known exactly
+(there is no corresponding \verb{*_err} argument) since the shape of the
+optimal design is insensitive to it. Must be > 0.}
 
-\item{b}{Single numeric for parameter \code{b}. Must be > 0.}
+\item{b}{Single numeric for your best guess at the Brière-2 curve's
+\code{b} parameter, which controls the asymmetry (skew) of the curve
+between \code{ctmin} and \code{ctmax}. Used as the center of the uniform
+prior for \code{log(b)} (see \code{logb_err}). Must be > 0.}
 
-\item{ctmin_err}{Single numeric for error for \code{ctmin}.
+\item{ctmin_err}{Single numeric for how uncertain you are about \code{ctmin}.
 This means priors for \code{ctmin} will be generated from a uniform
 distribution with minimum \code{ctmin - ctmin_err} and
-maximum \code{ctmin + ctmin_err}. Must be \verb{>= 0}.
+maximum \code{ctmin + ctmin_err}. Larger values reflect less confidence
+in your \code{ctmin} guess and cause the design to hedge across a wider
+range of possible curves. Must be \verb{>= 0}.
 Defaults to \code{2.50}.}
 
-\item{ctmax_err}{Single numeric for error for \code{ctmax}.
+\item{ctmax_err}{Single numeric for how uncertain you are about \code{ctmax}.
 This means priors for \code{ctmax} will be generated from a uniform
 distribution with minimum \code{ctmax - ctmax_err} and
-maximum \code{ctmax + ctmax_err}. Must be \verb{>= 0}.
+maximum \code{ctmax + ctmax_err}. Larger values reflect less confidence
+in your \code{ctmax} guess and cause the design to hedge across a wider
+range of possible curves. Must be \verb{>= 0}.
 Defaults to \code{1.50}.}
 
-\item{logb_err}{Single numeric for error for \code{log(b)}.
+\item{logb_err}{Single numeric for how uncertain you are about \code{b},
+expressed on the log scale.
 This means priors for \code{log(b)} will be generated from a uniform
 distribution with minimum \code{log(b) - logb_err} and
-maximum \code{log(b) + logb_err}. Must be \verb{>= 0}.
+maximum \code{log(b) + logb_err}. Larger values reflect less confidence
+in your \code{b} guess and cause the design to hedge across a wider
+range of possible curve shapes. Must be \verb{>= 0}.
 Defaults to \code{0.26}.}
 
-\item{min_sep}{Single numeric specifying the minimum separation between
-optimized temperatures. The step where equally-spaced temperatures are
+\item{min_sep}{Single numeric specifying the minimum separation (in
+temperature units) enforced between optimized temperatures, to avoid
+wasting experimental effort on temperatures that are too close
+together to be useful. The step where equally-spaced temperatures are
 added (only happens when \code{n_filler >= 1}) is not affected by this
 argument, and unless the number of points is very high relative
 to the difference in maximum (\code{ctmax + ctmax_err}) and
 minimum (\code{ctmin + ctmin_err}) temperatures surveyed, having a minimum
-separation shouldn't change this step anyway. Defaults to \code{1}.}
+separation shouldn't change this step anyway. Defaults to \code{2}.}
 
-\item{n_filler}{Single integer specifying the number of temperatures
-that are equally spaced versus optimized.
-Equally spacing points can be a good bet hedging strategy if you're
-quite unsure of the TPC parameters (\code{ctmin}, \code{ctmax}, \code{a}, \code{b})
-you're using. Defaults to \code{1L}.}
+\item{n_filler}{Single integer specifying how many of the \code{n_temps}
+total temperatures should be equally spaced (chosen to fill the
+largest gaps left by the optimized temperatures) rather than
+individually optimized. Equally spacing points can be a good bet
+hedging strategy if you're quite unsure of the TPC parameters
+(\code{ctmin}, \code{ctmax}, \code{a}, \code{b}) you're using, since it guards against
+the optimization overfitting to a misspecified curve.
+Must be between \code{0} and \code{n_temps}. Defaults to \code{1L}.}
 
-\item{n_draws}{Single integer specifying the number of prior draws to
-use. Increase if your certainty is low (i.e., \verb{*_err} parameters are
-high). Defaults to \code{250L}.}
+\item{n_draws}{Single integer specifying the number of Monte Carlo draws
+taken from the priors on \code{ctmin}, \code{ctmax}, and \code{b} to approximate
+the expected information gained by a candidate design. Increase if
+your certainty is low (i.e., \verb{*_err} parameters are high), since
+wider priors need more draws to be well approximated. Larger values
+give a more accurate (but slower) optimization. Defaults to \code{250L}.}
 
-\item{n_starts}{Single integer specifying the number of starts
-Defaults to \code{7L}.}
+\item{n_starts}{Single integer specifying the number of independent
+random starting designs the coordinate-exchange optimization is run
+from, with the best-performing result across all starts returned.
+Increasing this reduces the chance the optimizer settles on a
+locally (rather than globally) optimal set of temperatures, at the
+cost of more computation; this cost can be mitigated by running
+starts in parallel (see Examples). Defaults to \code{7L}.}
 
-\item{digits}{Single integer specifying the digits to round temperatures to.
-Defaults to \code{2L}.}
+\item{digits}{Single integer specifying the number of decimal places to
+round the returned temperatures to. Defaults to \code{2L}.}
 }
 \value{
 A vector of temperatures at which to sample.
