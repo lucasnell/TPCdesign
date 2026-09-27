@@ -4,15 +4,19 @@ test_that("design_temps works", {
     # so fix the seed to keep this stochastic optimization test reproducible
     set.seed(1)
 
-    test_dt <- function(n_temps, min_sep = 1, n_filler = 1) {
+    test_dt <- function(n_temps, min_sep = 1, n_filler = 1,
+                        min_temp = NULL, max_temp = NULL) {
         design_temps(n_temps = n_temps, min_sep = min_sep,
                      ctmin = 5, ctmax = 40, a = 1, b = 0.5,
                      n_draws = 50L, n_filler = n_filler,
-                     n_starts = 1L,
-                     digits = 2L)
+                     n_starts = 1L, digits = 2L,
+                     min_temp = min_temp, max_temp = max_temp)
     }
 
     for (L in 2:10) expect_length(test_dt(L), L)
+    for (L in 2:10) expect_length(test_dt(L, min_temp = 0), L)
+    for (L in 2:10) expect_length(test_dt(L, max_temp = 45), L)
+    for (L in 2:10) expect_length(test_dt(L, min_temp = 0, max_temp = 45), L)
 
     for (ms in c(0.1, 0.5, 1, 2)) {
         for (L in 2:10) {
@@ -34,6 +38,8 @@ test_that("design_temps validates its arguments", {
     expect_error(do.call(design_temps, modifyList(base_args, list(b = 0))))
     expect_error(do.call(design_temps, modifyList(base_args, list(n_filler = 10))))
     expect_error(do.call(design_temps, modifyList(base_args, list(ctmin_err = -1))))
+    expect_error(do.call(design_temps, modifyList(base_args, list(min_temp = base_args$ctmin + 1))))
+    expect_error(do.call(design_temps, modifyList(base_args, list(max_temp = base_args$ctmax - 1))))
 })
 
 

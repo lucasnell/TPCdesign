@@ -242,7 +242,12 @@ gap_filler <- function(n_filler, opt_temps, min_temp, max_temp, digits) {
 #'     starts in parallel (see Examples). Defaults to `7L`.
 #' @param digits Single integer specifying the number of decimal places to
 #'     round the returned temperatures to. Defaults to `2L`.
-#'
+#' @param min_temp Single numeric specifying the minimum possible value of
+#'     design temperatures to allow. If `NULL` (the default), this is
+#'     set to `ctmin - ctmin_err`. Must be `<= ctmin`.
+#' @param max_temp Single numeric specifying the maximum possible value of
+#'     design temperatures to allow. If `NULL` (the default), this is
+#'     set to `ctmax + ctmax_err`. Must be `>= ctmax`.
 #'
 #'
 #' @returns A vector of temperatures at which to sample.
@@ -265,7 +270,9 @@ design_temps <- function(n_temps, ctmin, ctmax, a, b,
                          n_filler = 1L,
                          n_draws = 250L,
                          n_starts = 7L,
-                         digits = 2L) {
+                         digits = 2L,
+                         min_temp = NULL,
+                         max_temp = NULL) {
 
     # Check args:
     single_integer(n_temps, "n_temps", .min = 2L)
@@ -281,6 +288,8 @@ design_temps <- function(n_temps, ctmin, ctmax, a, b,
     single_integer(n_draws, "n_draws", .min = 1L)
     single_integer(n_starts, "n_starts", .min = 1L)
     single_integer(digits, "digits", .min = 0L)
+    if (!is.null(min_temp)) single_number(min_temp, "min_temp", .max = ctmin)
+    if (!is.null(max_temp)) single_number(max_temp, "max_temp", .min = ctmax)
 
     n_optimal <- n_temps - n_filler
 
@@ -311,8 +320,8 @@ design_temps <- function(n_temps, ctmin, ctmax, a, b,
         return(d)
     })
 
-    min_temp <- min(prior_ctmin)
-    max_temp <- max(prior_ctmax)
+    if (is.null(min_temp)) min_temp <- min(prior_ctmin)
+    if (is.null(max_temp)) max_temp <- max(prior_ctmax)
 
     # Limit temps to have a minimum separation:
     limits_minsep <- function(d, i, j) {

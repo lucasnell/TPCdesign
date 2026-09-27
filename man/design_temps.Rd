@@ -17,7 +17,9 @@ design_temps(
   n_filler = 1L,
   n_draws = 250L,
   n_starts = 7L,
-  digits = 2L
+  digits = 2L,
+  min_temp = NULL,
+  max_temp = NULL
 )
 }
 \arguments{
@@ -107,6 +109,14 @@ starts in parallel (see Examples). Defaults to \code{7L}.}
 
 \item{digits}{Single integer specifying the number of decimal places to
 round the returned temperatures to. Defaults to \code{2L}.}
+
+\item{min_temp}{Single numeric specifying the minimum possible value of
+design temperatures to allow. If \code{NULL} (the default), this is
+set to \code{ctmin - ctmin_err}. Must be \verb{<= ctmin}.}
+
+\item{max_temp}{Single numeric specifying the maximum possible value of
+design temperatures to allow. If \code{NULL} (the default), this is
+set to \code{ctmax + ctmax_err}. Must be \verb{>= ctmax}.}
 }
 \value{
 A vector of temperatures at which to sample.
