@@ -10,16 +10,16 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/lucasnell/TPCdesign/blob/v1.0.2/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/lucasnell/TPCdesign/blob/main/DESCRIPTION)
 
 Nell L, Lyberger K (2026). *TPCdesign: Design Informative Thermal
-Performance Experiments*. R package version 1.0.1,
+Performance Experiments*. R package version 1.0.2,
 <https://github.com/lucasnell/TPCdesign>.
 
     @Manual{,
       title = {TPCdesign: Design Informative Thermal Performance Experiments},
       author = {Lucas A. Nell and Kelsey Lyberger},
       year = {2026},
-      note = {R package version 1.0.1},
+      note = {R package version 1.0.2},
       url = {https://github.com/lucasnell/TPCdesign},
     }
