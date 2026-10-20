@@ -47,6 +47,32 @@ To also build the vignette:
 remotes::install_github("lucasnell/TPCdesign", build_vignettes = TRUE)
 ```
 
+### From source
+
+Clone the repository:
+
+``` bash
+git clone https://github.com/lucasnell/TPCdesign.git
+cd TPCdesign
+```
+
+Then, from R with the working directory set to the cloned folder,
+install the dependencies and the package:
+
+``` r
+# install.packages("remotes")
+remotes::install_deps(dependencies = TRUE)
+remotes::install_local(".", build_vignettes = TRUE)
+```
+
+Or, from the terminal inside the cloned folder (requires the
+dependencies listed in `DESCRIPTION` to already be installed):
+
+``` bash
+R CMD build .
+R CMD INSTALL TPCdesign_*.tar.gz
+```
+
 ## Usage
 
 Give `design_temps()` your best guesses at `ctmin`, `ctmax`, `a`, and
