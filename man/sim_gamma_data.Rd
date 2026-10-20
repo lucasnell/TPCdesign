@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{sim_gamma_data}
 \alias{sim_gamma_data}
-\title{Simulate data with gamma distributed error (or normal approximation)}
+\title{Simulate data with gamma distributed error}
 \usage{
 sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE)
 }
@@ -15,9 +15,10 @@ temperature.}
 
 \item{obs_cv}{Single numeric for the observation error coefficient of variation.
 Must be >= 0.
-Observation error is simulated using a gamma distribution, except for
-when performance values would fall below zero, in which case it uses
-a truncated normal approximation.}
+Observation error is simulated using a gamma distribution with mean
+equal to the expected performance. Where expected performance is zero
+(temperatures at or outside \code{ctmin} and \code{ctmax}, or \code{a = 0}), the
+simulated value is 0.}
 
 \item{ctmin}{Single numeric for parameter \code{ctmin}.}
 
@@ -32,11 +33,10 @@ Defaults to \code{FALSE}.}
 }
 \value{
 A dataframe of temperatures (column \code{"temp"}) and
-performance values (column \code{"y"}) with gamma (or normal approximation)
-error.
+performance values (column \code{"y"}) with gamma error.
 }
 \description{
-Simulate data with gamma distributed error (or normal approximation)
+Simulate data with gamma distributed error
 }
 \examples{
 set.seed(1)

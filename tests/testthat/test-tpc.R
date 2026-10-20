@@ -74,3 +74,21 @@ test_that("briere2_tpc with scale = TRUE rescales the curve to a maximum of 1", 
 
 
 
+
+
+test_that("briere2_tpc and briere2_tpc_deriv are 0 at and outside ctmin and ctmax", {
+    temp <- c(0, 5, 8, 38, 40, 50)
+    expect_equal(as.vector(briere2_tpc(temp, 8, 38, 1, 0.2)), rep(0, length(temp)))
+    expect_equal(as.vector(briere2_tpc_deriv(temp, 8, 38, 1, 0.2)), rep(0, length(temp)))
+})
+
+
+test_that("briere2_tpc_Topt recycles each length-1 argument", {
+    ctmax <- c(30, 35, 40)
+    out <- briere2_tpc_Topt(ctmin = 5, ctmax = ctmax, b = 0.5)
+    expect_equal(as.vector(out), sapply(ctmax, function(x) briere2_tpc_Topt(5, x, 0.5)))
+
+    b <- c(0.2, 0.5, 1)
+    out <- briere2_tpc_Topt(ctmin = 5, ctmax = 40, b = b)
+    expect_equal(as.vector(out), sapply(b, function(x) briere2_tpc_Topt(5, 40, x)))
+})

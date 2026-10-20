@@ -42,3 +42,13 @@ test_that("gap_filler retains a boundary that was already an optimal point", {
     expect_true(5 %in% out)
     expect_false(35 %in% out)
 })
+
+
+test_that("gap_filler retains an upper boundary that was already an optimal point", {
+    pts <- c(20, 35)
+    out <- gap_filler(1, pts, min_temp = 5, max_temp = 35, digits = 2)
+
+    expect_true(35 %in% out)
+    expect_false(5 %in% out)
+    expect_length(out, 3)
+})

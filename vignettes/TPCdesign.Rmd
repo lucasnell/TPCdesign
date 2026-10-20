@@ -118,8 +118,8 @@ temperatures out with no regard for the curve's shape.
 
 Once you have a set of temperatures, `sim_gamma_data()` simulates
 performance measurements at them, with observation error drawn from a
-gamma distribution (or a truncated-normal approximation when the expected
-performance is at or near zero):
+gamma distribution. Temperatures at or outside `ctmin` and `ctmax` have an
+expected performance of zero, so their simulated values are 0:
 
 ```{r sim-data}
 dat_opt <- sim_gamma_data(opt_temps, n_reps = 6L, obs_cv = 0.15,

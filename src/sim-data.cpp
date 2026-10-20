@@ -65,7 +65,7 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
  */
 
 
-//' Simulate data with gamma distributed error (or normal approximation)
+//' Simulate data with gamma distributed error
 //'
 //' @param temp Numeric vector giving the observed temperatures for each
 //'     performance value.
@@ -73,9 +73,10 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
 //'     temperature.
 //' @param obs_cv Single numeric for the observation error coefficient of variation.
 //'     Must be >= 0.
-//'     Observation error is simulated using a gamma distribution, except for
-//'     when performance values would fall below zero, in which case it uses
-//'     a truncated normal approximation.
+//'     Observation error is simulated using a gamma distribution with mean
+//'     equal to the expected performance. Where expected performance is zero
+//'     (temperatures at or outside `ctmin` and `ctmax`, or `a = 0`), the
+//'     simulated value is 0.
 //' @inheritParams briere2_tpc
 //' @param scale_tpc Single logical for whether to scale to make max value 1.
 //'     Defaults to `FALSE`.
@@ -83,8 +84,7 @@ arma::vec trunc_rnorm_range(const uint32& n, const double& mu, const double& sig
 //' @export
 //'
 //' @returns A dataframe of temperatures (column `"temp"`) and
-//'     performance values (column `"y"`) with gamma (or normal approximation)
-//'     error.
+//'     performance values (column `"y"`) with gamma error.
 //'
 //' @examples
 //' set.seed(1)
@@ -130,7 +130,8 @@ DataFrame sim_gamma_data(const arma::vec& temp,
     for (uint32 i = 0; i < n_temps; i++) {
         scale = true_y.at(i) * obs_cv2;
         if (scale <= 0) {
-            // approximate with truncated normal if scale <= 0:
+            // expected performance is zero here, so mu = sigma = 0 and the
+            // truncated normal always returns 0:
             mu = shape * scale;
             sigma = std::sqrt(shape * scale * scale);
             tnorm_d.reset(mu, sigma);

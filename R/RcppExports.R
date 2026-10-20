@@ -17,7 +17,7 @@ trunc_rnorm_range <- function(n, mu, sigma) {
     .Call(`_TPCdesign_trunc_rnorm_range`, n, mu, sigma)
 }
 
-#' Simulate data with gamma distributed error (or normal approximation)
+#' Simulate data with gamma distributed error
 #'
 #' @param temp Numeric vector giving the observed temperatures for each
 #'     performance value.
@@ -25,9 +25,10 @@ trunc_rnorm_range <- function(n, mu, sigma) {
 #'     temperature.
 #' @param obs_cv Single numeric for the observation error coefficient of variation.
 #'     Must be >= 0.
-#'     Observation error is simulated using a gamma distribution, except for
-#'     when performance values would fall below zero, in which case it uses
-#'     a truncated normal approximation.
+#'     Observation error is simulated using a gamma distribution with mean
+#'     equal to the expected performance. Where expected performance is zero
+#'     (temperatures at or outside `ctmin` and `ctmax`, or `a = 0`), the
+#'     simulated value is 0.
 #' @inheritParams briere2_tpc
 #' @param scale_tpc Single logical for whether to scale to make max value 1.
 #'     Defaults to `FALSE`.
@@ -35,8 +36,7 @@ trunc_rnorm_range <- function(n, mu, sigma) {
 #' @export
 #'
 #' @returns A dataframe of temperatures (column `"temp"`) and
-#'     performance values (column `"y"`) with gamma (or normal approximation)
-#'     error.
+#'     performance values (column `"y"`) with gamma error.
 #'
 #' @examples
 #' set.seed(1)

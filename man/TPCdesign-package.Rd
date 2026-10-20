@@ -28,6 +28,7 @@ error at a set of temperatures.
 Useful links:
 \itemize{
   \item \url{https://github.com/lucasnell/TPCdesign}
+  \item \url{https://lucasnell.github.io/TPCdesign/}
   \item Report bugs at \url{https://github.com/lucasnell/TPCdesign/issues}
 }
 

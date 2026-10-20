@@ -50,3 +50,21 @@ test_that("design_temps errors when min_sep is incompatible with n_temps", {
         regexp = "min_sep is too large"
     )
 })
+
+
+test_that("design_temps runs in parallel with a future plan", {
+    skip_if_not_installed("future")
+    skip_if_not_installed("future.apply")
+    skip_on_cran()
+
+    old_plan <- future::plan(future::multisession, workers = 2L)
+    on.exit(future::plan(old_plan), add = TRUE)
+
+    set.seed(1)
+    out <- design_temps(n_temps = 5, ctmin = 5, ctmax = 40, a = 1, b = 0.5,
+                        n_draws = 20L, n_starts = 2L, n_filler = 0)
+
+    expect_length(out, 5)
+    expect_true(all(out >= 5 - 2.5 & out <= 40 + 1.5))
+    expect_gte(min(diff(out)), 2)
+})

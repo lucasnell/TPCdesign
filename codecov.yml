@@ -1,5 +1,9 @@
 comment: false
 
+# Bundled third-party PCG headers, not maintained in this package
+ignore:
+  - "inst/include/pcg"
+
 coverage:
   status:
     project:
