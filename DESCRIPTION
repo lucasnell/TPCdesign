@@ -30,7 +30,7 @@ Suggests:
     rmarkdown,
     testthat (>= 3.0.0)
 SystemRequirements: GNU make
-URL: https://github.com/lucasnell/TPCdesign
+URL: https://github.com/lucasnell/TPCdesign, https://lucasnell.github.io/TPCdesign/
 BugReports: https://github.com/lucasnell/TPCdesign/issues
 RemoteType: github
 RemoteHost: api.github.com
