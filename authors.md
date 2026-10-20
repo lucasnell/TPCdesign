@@ -10,7 +10,7 @@
 ## Citation
 
 Source:
-[`DESCRIPTION`](https://github.com/lucasnell/TPCdesign/blob/main/DESCRIPTION)
+[`DESCRIPTION`](https://github.com/lucasnell/TPCdesign/blob/v1.0.2/DESCRIPTION)
 
 Nell L, Lyberger K (2026). *TPCdesign: Design Informative Thermal
 Performance Experiments*. R package version 1.0.1,
