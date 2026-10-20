@@ -66,4 +66,9 @@ test_that("is_type validates correctly", {
 
     expect_null(is_type(1:5, "x", type = is.integer))
     expect_error(is_type("a", "x", type = is.numeric))
+
+    # inputs with NAs fail before the type check
+    expect_error(is_type(c(1L, NA), "x", type = "integer"),
+                 regexp = "an object of type integer")
+    expect_error(is_type(list(1, NA), "x", type = "list"))
 })

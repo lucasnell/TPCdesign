@@ -120,9 +120,10 @@ tpc_pace <- function (utility, start.d, B, lower, upper, limits) {
     if (N1 > 0) {
         phase1.trace <- routphase1[[besti]]
     }
-    if (N2 > 0) {
-        phase2.trace <- routphase2[[besti]]
-    }
+    # Commented this chunk because N2 is always set to 0
+    # if (N2 > 0) {
+    #     phase2.trace <- routphase2[[besti]]
+    # }
     output <- list(d = routd[[besti]], phase1.trace = phase1.trace,
                    phase2.trace = phase2.trace, eval = fout[[besti]], utility = utility,
                    start.d = start.d, final.d = routd, besti = besti, B = B,

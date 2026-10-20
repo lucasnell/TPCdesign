@@ -92,3 +92,14 @@ test_that("briere2_tpc_Topt recycles each length-1 argument", {
     out <- briere2_tpc_Topt(ctmin = 5, ctmax = 40, b = b)
     expect_equal(as.vector(out), sapply(b, function(x) briere2_tpc_Topt(5, 40, x)))
 })
+
+
+test_that("briere2_tpc with scale = TRUE returns zeros when the curve is all zero", {
+    y <- briere2_tpc(c(5, 20, 30, 40), ctmin = 8, ctmax = 38, a = 0, b = 0.5,
+                     scale = TRUE)
+    expect_equal(as.vector(y), rep(0, 4))
+
+    y <- briere2_tpc(c(0, 5, 40), ctmin = 8, ctmax = 38, a = 1, b = 0.5,
+                     scale = TRUE)
+    expect_equal(as.vector(y), rep(0, 3))
+})
