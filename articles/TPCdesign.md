@@ -107,8 +107,9 @@ design spreads temperatures out with no regard for the curve’s shape.
 Once you have a set of temperatures,
 [`sim_gamma_data()`](https://lucasnell.github.io/TPCdesign/reference/sim_gamma_data.md)
 simulates performance measurements at them, with observation error drawn
-from a gamma distribution (or a truncated-normal approximation when the
-expected performance is at or near zero):
+from a gamma distribution. Temperatures at or outside `ctmin` and
+`ctmax` have an expected performance of zero, so their simulated values
+are 0:
 
 ``` r
 

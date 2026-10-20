@@ -9,4 +9,4 @@
 - [`design_temps()`](https://lucasnell.github.io/TPCdesign/reference/design_temps.md)
   : Design experimental temperatures
 - [`sim_gamma_data()`](https://lucasnell.github.io/TPCdesign/reference/sim_gamma_data.md)
-  : Simulate data with gamma distributed error (or normal approximation)
+  : Simulate data with gamma distributed error

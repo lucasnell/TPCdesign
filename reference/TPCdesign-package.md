@@ -31,6 +31,8 @@ Useful links:
 
 - <https://github.com/lucasnell/TPCdesign>
 
+- <https://lucasnell.github.io/TPCdesign/>
+
 - Report bugs at <https://github.com/lucasnell/TPCdesign/issues>
 
 ## Author

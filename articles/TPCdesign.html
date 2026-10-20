@@ -154,8 +154,9 @@ shape.</p>
 </h2>
 <p>Once you have a set of temperatures, <code><a href="../reference/sim_gamma_data.html">sim_gamma_data()</a></code>
 simulates performance measurements at them, with observation error drawn
-from a gamma distribution (or a truncated-normal approximation when the
-expected performance is at or near zero):</p>
+from a gamma distribution. Temperatures at or outside <code>ctmin</code>
+and <code>ctmax</code> have an expected performance of zero, so their
+simulated values are 0:</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">dat_opt</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/sim_gamma_data.html">sim_gamma_data</a></span><span class="op">(</span><span class="va">opt_temps</span>, n_reps <span class="op">=</span> <span class="fl">6L</span>, obs_cv <span class="op">=</span> <span class="fl">0.15</span>,</span>
 <span>                          ctmin <span class="op">=</span> <span class="va">true_ctmin</span>, ctmax <span class="op">=</span> <span class="va">true_ctmax</span>,</span>

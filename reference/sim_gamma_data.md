@@ -1,6 +1,6 @@
-# Simulate data with gamma distributed error (or normal approximation)
+# Simulate data with gamma distributed error
 
-Simulate data with gamma distributed error (or normal approximation)
+Simulate data with gamma distributed error
 
 ## Usage
 
@@ -23,8 +23,9 @@ sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE)
 
   Single numeric for the observation error coefficient of variation.
   Must be \>= 0. Observation error is simulated using a gamma
-  distribution, except for when performance values would fall below
-  zero, in which case it uses a truncated normal approximation.
+  distribution with mean equal to the expected performance. Where
+  expected performance is zero (temperatures at or outside `ctmin` and
+  `ctmax`, or `a = 0`), the simulated value is 0.
 
 - ctmin:
 
@@ -50,7 +51,7 @@ sim_gamma_data(temp, n_reps, obs_cv, ctmin, ctmax, a, b, scale_tpc = FALSE)
 ## Value
 
 A dataframe of temperatures (column `"temp"`) and performance values
-(column `"y"`) with gamma (or normal approximation) error.
+(column `"y"`) with gamma error.
 
 ## Examples
 

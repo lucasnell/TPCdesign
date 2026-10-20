@@ -3,7 +3,7 @@ pkgdown: 2.2.1
 pkgdown_sha: ~
 articles:
   TPCdesign: TPCdesign.html
-last_built: 2026-10-20T17:23Z
+last_built: 2026-10-20T17:56Z
 urls:
   reference: https://lucasnell.github.io/TPCdesign/reference
   article: https://lucasnell.github.io/TPCdesign/articles
